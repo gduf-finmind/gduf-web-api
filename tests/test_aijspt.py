@@ -123,6 +123,45 @@ def test_club_list_parses_five_public_cards(client: GdufClient) -> None:
     assert result.items[-1].url == "https://ai-data-competitions.cn/clubs/acm-team"
 
 
+def test_club_list_includes_nextjs_streamed_cards_outside_overview() -> None:
+    def card(slug: str, name: str) -> str:
+        return (
+            f'<article><span data-slot="badge">{name}</span><h3>{name}</h3>'
+            f'<p>{name} slogan</p><p>{name} club</p>'
+            f'<a href="/clubs/{slug}">View</a></article>'
+        )
+
+    html = f"""
+    <section id="clubs-overview">
+      {card("java-tribe", "Java Tribe")}
+      {card("ai-studio", "AI Studio")}
+    </section>
+    <template id="next-stream-1">
+      {card("quant-investment", "Quant Studio")}
+    </template>
+    <template id="next-stream-2">
+      {card("bricks-team", "Robotics Studio")}
+      {card("acm-team", "ACM Team")}
+    </template>
+    <article><h3>News</h3><p>News</p><p>Ignore</p><a href="/news/1">View</a></article>
+    """
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=html, request=request)
+
+    with GdufClient(transport=httpx.MockTransport(handler), retries=0) as streamed_client:
+        result = streamed_client.get_clubs()
+
+    assert result.total_items == 5
+    assert [club.slug for club in result.items] == [
+        "java-tribe",
+        "ai-studio",
+        "quant-investment",
+        "bricks-team",
+        "acm-team",
+    ]
+
+
 def test_aijspt_public_helpers_reuse_client(client: GdufClient) -> None:
     competitions = api.get_aijspt_bslb(status="registration_open", client=client)
     assert competitions.items

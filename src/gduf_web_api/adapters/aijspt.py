@@ -30,6 +30,7 @@ BASE_URL = "https://ai-data-competitions.cn/"
 _DETAIL_PATH_RE = re.compile(
     r"^/competitions/([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})/?$"
 )
+_CLUB_PATH_RE = re.compile(r"^/clubs/([^/]+)/?$", re.IGNORECASE)
 
 
 def _clean_text(value: str | None) -> str | None:
@@ -37,6 +38,11 @@ def _clean_text(value: str | None) -> str | None:
         return None
     cleaned = " ".join(value.replace("\u200b", "").split())
     return cleaned or None
+
+
+def _tag_text(tag: Tag) -> str | None:
+    """Return text from regular markup and inert template payloads."""
+    return _clean_text(" ".join(str(node) for node in tag.find_all(string=True)))
 
 
 def _required_text(value: Any, field: str) -> str:
@@ -430,28 +436,41 @@ class AijsptAdapter:
         if container is None:
             raise ParseError("aijspt club overview not found")
         items: list[ClubSummary] = []
-        for card in container.select("article"):
+        seen: set[str] = set()
+        # Next.js may stream some cards in template payloads outside #clubs-overview.
+        # Scan the complete response and identify club cards by their detail URL.
+        for card in soup.select("article"):
             heading = card.find("h3")
-            anchor = card.find("a", href=True)
             paragraphs = card.find_all("p", recursive=False)
             badge = card.select_one("[data-slot='badge']")
-            if not isinstance(heading, Tag) or not isinstance(anchor, Tag) or len(paragraphs) < 2:
+            if not isinstance(heading, Tag) or len(paragraphs) < 2:
                 continue
-            url = _absolute(response_url, str(anchor.get("href")))
-            if not url:
+
+            url = None
+            slug = None
+            for anchor in card.find_all("a", href=True):
+                candidate_url = _absolute(response_url, str(anchor.get("href")))
+                if not candidate_url:
+                    continue
+                parsed = urlparse(candidate_url)
+                match = _CLUB_PATH_RE.fullmatch(parsed.path)
+                if parsed.hostname == urlparse(response_url).hostname and match:
+                    url = candidate_url
+                    slug = match.group(1)
+                    break
+            if url is None or slug is None or slug in seen:
                 continue
-            path = urlparse(url).path.rstrip("/")
-            slug = path.rsplit("/", 1)[-1]
+            seen.add(slug)
             items.append(
                 ClubSummary(
                     slug=slug,
-                    name=_required_text(heading.get_text(" ", strip=True), "club.name"),
+                    name=_required_text(_tag_text(heading), "club.name"),
                     direction=_required_text(
-                        badge.get_text(" ", strip=True) if badge else None, "club.direction"
+                        _tag_text(badge) if isinstance(badge, Tag) else None, "club.direction"
                     ),
-                    slogan=_required_text(paragraphs[0].get_text(" ", strip=True), "club.slogan"),
+                    slogan=_required_text(_tag_text(paragraphs[0]), "club.slogan"),
                     description=_required_text(
-                        paragraphs[1].get_text(" ", strip=True), "club.description"
+                        _tag_text(paragraphs[1]), "club.description"
                     ),
                     url=url,
                 )
