@@ -40,12 +40,15 @@ from gduf_web_api.models import (
     CompetitionSummary,
     CompetitionTimelineItem,
     ContentDetail,
+    HomeSection,
     ListResult,
     Notice,
     PageResult,
     PersonSummary,
     ResourceLink,
+    SiteHome,
 )
+from gduf_web_api.sources import SourceInfo, get_source_info, list_sources
 
 __version__ = "0.2.1"
 
@@ -60,6 +63,7 @@ __all__ = [
     "ContentDetail",
     "GdufClient",
     "GdufError",
+    "HomeSection",
     "InvalidPageError",
     "ListResult",
     "NetworkError",
@@ -68,6 +72,8 @@ __all__ = [
     "ParseError",
     "PersonSummary",
     "ResourceLink",
+    "SiteHome",
+    "SourceInfo",
     "UnsupportedSourceError",
     "get_ai_detail",
     "get_ai_home",
@@ -89,5 +95,7 @@ __all__ = [
     "get_aijspt_bsxq",
     "get_aijspt_stlb",
     "get_aijspt_tzgg",
+    "get_source_info",
+    "list_sources",
     "search_ai",
 ]

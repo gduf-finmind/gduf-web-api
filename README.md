@@ -1,8 +1,40 @@
 # gduf-web-api
 
-广东金融学院公开网站的类型化 Python 客户端。当前支持大数据与人工智能学院官网（`ai`）和学院竞赛管理与问答平台（`aijspt`）。
+广东金融学院公开网站的类型化 Python 客户端。当前支持大数据与人工智能学院官网（`ai`）和学院竞赛管理与问答平台（`aijspt`）；学校官网与各学院子站正在逐个接入，完整清单与状态见下文[数据源状态](#数据源状态)。
 
 > 本项目是非官方客户端，与广东金融学院及其下属学院没有隶属关系。数据来自公开网页；网站结构变化可能导致解析失效。
+
+## 数据源状态
+
+以下站点状态于 `2026-10-01` 探测确认（代码：`list_sources()` / `get_source_info(code)`，见 `gduf_web_api.sources`）。
+
+| 来源 | 学院 / 单位 | 地址 | 状态 | 说明 |
+| --- | --- | --- | --- | --- |
+| `main` | 学校官网 | https://www.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `ai` | 大数据与人工智能学院（ai 域名） | https://ai.gduf.edu.cn/ | ✅ 可用 | 已接入 |
+| `jrx` | 金融与投资学院 | https://jrx.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `kjx` | 会计学院 | https://kjx.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `bxx` | 保险学院 | https://bxx.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `xygl` | 信用管理学院 | https://xygl.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `wyx` | 外国语言与文化学院 | https://wyx.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `cjcm` | 财经与新媒体学院 | https://cjcm.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `jmxy` | 经济贸易学院 | https://jmxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `gsxy` | 工商管理学院 | https://gsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `jrsxy` | 金融数学与统计学院 | https://jrsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `gjjrxy` | 国家金融学学院 | https://gjjrxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `dsai` | 大数据与人工智能学院（dsai 域名） | https://dsai.gduf.edu.cn/ | ❌ 不可用 | 新域名 TLS 握手失败；同院内容仍可由 `ai` 来源获取 |
+| `jsjxy` | 计算机学院 | https://jsjxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `fx` | 法学院 | https://fx.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `ggglxy` | 公共管理学院 | https://ggglxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `mkszyxy` | 马克思主义学院 | https://mkszyxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `gjjyxy` | 国际教育学院 | https://gjjyxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `jjxy` | 继续教育学院 | https://jjxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+
+说明：
+
+- 不可用站点在 TLS 握手阶段即被服务器（负载均衡）断开连接（`httpx.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING]`），且 HTTP/HTTPS 端口均无响应；重新探测通过后再为对应来源新增适配器。
+- 体育教研部、心理与创业教育学院、实验教学中心没有独立子网站，信息在校主站（`main`）内。
+- 肇庆校区信息在校官网机构栏目：<https://www.gduf.edu.cn/xygk/jgsz.htm>。
 
 ## 安装
 

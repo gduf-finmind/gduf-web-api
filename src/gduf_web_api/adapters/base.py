@@ -15,13 +15,14 @@ from gduf_web_api.models import (
     Notice,
     PageResult,
     PersonSummary,
+    SiteHome,
 )
 
 
 class SourceAdapter(Protocol):
     code: str
 
-    def get_home(self) -> AiHome: ...
+    def get_home(self) -> AiHome | SiteHome: ...
 
     def get_articles(self, category: str, page: int = 1) -> PageResult[ArticleSummary]: ...
 

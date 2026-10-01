@@ -20,6 +20,7 @@ from gduf_web_api.models import (
     Notice,
     PageResult,
     PersonSummary,
+    SiteHome,
 )
 
 if TYPE_CHECKING:
@@ -119,7 +120,7 @@ class GdufClient:
                 time.sleep(0.5 * (2**attempt))
         raise NetworkError(f"failed to fetch {url}: {last_error}") from last_error
 
-    def get_home(self, source: str = "ai") -> AiHome:
+    def get_home(self, source: str = "ai") -> AiHome | SiteHome:
         return self._adapter(source).get_home()
 
     def get_articles(

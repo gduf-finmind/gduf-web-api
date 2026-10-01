@@ -30,7 +30,12 @@ def _using(client: GdufClient | None, operation: Callable[[GdufClient], R]) -> R
 
 
 def get_ai_home(*, client: GdufClient | None = None) -> AiHome:
-    return _using(client, lambda active: active.get_home("ai"))
+    def _home(active: GdufClient) -> AiHome:
+        result = active.get_home("ai")
+        assert isinstance(result, AiHome)
+        return result
+
+    return _using(client, _home)
 
 
 def get_ai_xyxw(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:

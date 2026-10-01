@@ -110,6 +110,25 @@ class AiHome(JsonModel):
 
 
 @dataclass(frozen=True, slots=True)
+class HomeSection(JsonModel):
+    """One named information block parsed from a site home page."""
+
+    category: str
+    title: str
+    items: tuple[ArticleSummary, ...]
+    source: str = "ai"
+
+
+@dataclass(frozen=True, slots=True)
+class SiteHome(JsonModel):
+    """Named information blocks shown on a non-AI GDUF site home page."""
+
+    sections: tuple[HomeSection, ...]
+    source_url: str
+    source: str = "ai"
+
+
+@dataclass(frozen=True, slots=True)
 class CompetitionSummary(JsonModel):
     """A competition published by the AI college competition platform."""
 
