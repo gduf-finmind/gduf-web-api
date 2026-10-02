@@ -360,6 +360,68 @@ def get_kjx_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="kjx"))
 
 
+def get_bxx_xwgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 新闻公告 (college news and notices)."""
+
+    return _using(client, lambda active: active.get_articles("xwgg", page, source="bxx"))
+
+
+def get_bxx_kydt(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 科研动态 (research updates)."""
+
+    return _using(client, lambda active: active.get_articles("kydt", page, source="bxx"))
+
+
+def get_bxx_xsjl(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 学术交流 (academic exchanges)."""
+
+    return _using(client, lambda active: active.get_articles("xsjl", page, source="bxx"))
+
+
+def get_bxx_xrld(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 现任领导 (current leadership)."""
+
+    return _using(client, lambda active: active.get_people("xrld", page, source="bxx"))
+
+
+def get_bxx_js(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教授 (professors)."""
+
+    return _using(client, lambda active: active.get_people("js", page, source="bxx"))
+
+
+def get_bxx_fjs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 副教授 (associate professors)."""
+
+    return _using(client, lambda active: active.get_people("fjs", page, source="bxx"))
+
+
+def _bxx_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="bxx"))
+
+
+def get_bxx_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _bxx_content("xyjj", client)
+
+
+def get_bxx_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 师资概况 (faculty overview)."""
+
+    return _bxx_content("szgk", client)
+
+
+def get_bxx_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one bxx article or teacher profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="bxx"))
+
+
 def get_aijspt_bslb(
     *,
     year: int | None = None,

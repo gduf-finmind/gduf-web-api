@@ -53,6 +53,7 @@ class GdufClient:
         )
         from gduf_web_api.adapters.ai import AiAdapter
         from gduf_web_api.adapters.aijspt import AijsptAdapter
+        from gduf_web_api.adapters.bxx import BxxAdapter
         from gduf_web_api.adapters.jrx import JrxAdapter
         from gduf_web_api.adapters.kjx import KjxAdapter
         from gduf_web_api.adapters.main_site import MainSiteAdapter
@@ -62,6 +63,7 @@ class GdufClient:
             "main": MainSiteAdapter(self),
             "jrx": JrxAdapter(self),
             "kjx": KjxAdapter(self),
+            "bxx": BxxAdapter(self),
         }
         self._competition_adapters: dict[str, CompetitionSourceAdapter] = {
             "aijspt": AijsptAdapter(self)

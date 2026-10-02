@@ -1,4 +1,4 @@
-"""Adapter for the School of Accounting site (kjx.gduf.edu.cn)."""
+"""Adapter for the School of Insurance site (bxx.gduf.edu.cn)."""
 
 from __future__ import annotations
 
@@ -10,27 +10,26 @@ from bs4 import BeautifulSoup, Tag
 
 from gduf_web_api.adapters.vsb import (
     VsbAdapter,
-    _absolute,
     _clean_text,
     _parse_date,
-    people_kjx_card,
-    row_kjx,
+    people_bxx_name,
+    row_title_only,
 )
 
 if TYPE_CHECKING:
     from gduf_web_api.client import GdufClient
 
-BASE_URL = "https://kjx.gduf.edu.cn/"
-HOST = "kjx.gduf.edu.cn"
+BASE_URL = "https://bxx.gduf.edu.cn/"
+HOST = "bxx.gduf.edu.cn"
 
 _TIME_RE = re.compile(r"时间[\uFF1A:]\s*([0-9]{4}-[0-9]{2}-[0-9]{2})")
 _SOURCE_RE = re.compile(r"来源[\uFF1A:]\s*(.*?)(?=\s*(?:时间|作者|点击|发布日期)[\uFF1A:]|$)")
 
 
-class KjxAdapter(VsbAdapter):
-    """Parse the accounting school templates."""
+class BxxAdapter(VsbAdapter):
+    """Parse the insurance school templates (title-only list rows)."""
 
-    code = "kjx"
+    code = "bxx"
 
     def __init__(self, client: GdufClient) -> None:
         super().__init__(
@@ -38,33 +37,35 @@ class KjxAdapter(VsbAdapter):
             base_url=BASE_URL,
             host=HOST,
             article_paths={
-                "xxgg": "index/xxgg.htm",
-                "dthd": "dtjs/dthd.htm",
-                "jxgl": "zyjx/jxgl.htm",
+                "xwgg": "xwgg.htm",
                 "kydt": "kxyj/kydt.htm",
+                "xsjl": "kxyj/xsjl.htm",
             },
-            article_row_parser=row_kjx,
+            article_row_parser=row_title_only,
             people_paths={
-                "js": "szdw/js.htm",
-                "fjs": "szdw/fjs.htm",
-                "xzry": "szdw/xzry.htm",
+                "xrld": "xygk1/xrld.htm",
+                "js": "szdw/jsml/js.htm",
+                "fjs": "szdw/jsml/fjs.htm",
             },
-            people_row_parser=people_kjx_card,
+            people_row_parser=people_bxx_name,
             content_paths={
-                "xyjj": "yxgk/xyjj.htm",
+                "xyjj": "xygk1/xyjj.htm",
                 "szgk": "szdw/szgk.htm",
-                "xrld": "yxgk/xrld.htm",
             },
         )
 
     # -- content title / meta ------------------------------------------------
 
     def _resolve_title(self, soup: BeautifulSoup, body: Tag) -> str | None:
-        node = soup.select_one(".main_contit h2")
-        if isinstance(node, Tag):
-            text = _clean_text(node.get_text(" ", strip=True))
-            if text:
-                return text
+        # Detail pages carry the article title as the first h2 inside .main_info;
+        # static column pages fall back to the default nearest-heading lookup.
+        info = soup.select_one(".main_info")
+        if info is not None:
+            h2 = info.find("h2")
+            if isinstance(h2, Tag):
+                text = _clean_text(h2.get_text(" ", strip=True))
+                if text:
+                    return text
         return super()._resolve_title(soup, body)
 
     def _parse_meta(
@@ -72,7 +73,7 @@ class KjxAdapter(VsbAdapter):
     ) -> tuple[date | None, str | None, int | None, str | None, str | None]:
         published_at: date | None = None
         attribution: str | None = None
-        meta = soup.select_one(".main_contit p")
+        meta = soup.select_one(".text_time")
         if meta is not None:
             fragment = BeautifulSoup(str(meta), "html.parser")
             for junk in fragment.select("script, style, noscript"):
@@ -84,20 +85,4 @@ class KjxAdapter(VsbAdapter):
             source_match = _SOURCE_RE.search(text)
             if source_match:
                 attribution = _clean_text(source_match.group(1))
-        previous_url: str | None = None
-        next_url: str | None = None
-        nav = soup.select_one(".main_art")
-        if nav is not None:
-            for entry in nav.find_all("li"):
-                label = _clean_text(entry.get_text(" ", strip=True)) or ""
-                anchor = entry.find("a", href=True)
-                if not isinstance(anchor, Tag):
-                    continue
-                link = _absolute(page_url, str(anchor.get("href")))
-                if not link:
-                    continue
-                if label.startswith("上一篇"):
-                    previous_url = link
-                elif label.startswith("下一篇"):
-                    next_url = link
-        return published_at, attribution, None, previous_url, next_url
+        return published_at, attribution, None, None, None
