@@ -327,7 +327,7 @@ def people_kjx_card(row: Tag, page_url: str) -> PersonSummary | None:
     if right is None:
         return None
     h3 = right.find("h3")
-    name = _clean_text(h3.get_text(" ", strip=True)) if h3 else None
+    name = _clean_name(h3.get_text(" ", strip=True)) if h3 else None
     if not name:
         return None
     detail_link = next(
@@ -343,20 +343,18 @@ def people_kjx_card(row: Tag, page_url: str) -> PersonSummary | None:
     url = _absolute(page_url, str(detail_link.get("href")))
     if not url:
         return None
-    text = _clean_text(right.get_text(" ", strip=True)) or ""
+    info_para = right.find("p")
+    text = _clean_text(info_para.get_text(" ", strip=True)) if info_para is not None else ""
     role = None
     summary = None
-    role_match = re.search(r"职位[\uFF1A:]\s*(.+?)(?:个人简介[\uFF1A:]|$)", text)
+    role_match = re.search(
+        r"(?:职位|职称)[\uFF1A:]\s*(.+?)(?:个人简介[\uFF1A:]|部门[\uFF1A:]|\s*\[|$)", text or ""
+    )
     if role_match:
         role = _clean_text(role_match.group(1))
-    summary_match = re.search(r"个人简介[\uFF1A:]\s*(.+)$", text)
+    summary_match = re.search(r"个人简介[\uFF1A:]\s*(.+?)(?:\s*\[|$)", text or "")
     if summary_match:
         summary = _clean_text(summary_match.group(1))
-    if role is None and "职位" in text:
-        # e.g. "姓名: 秦格 职位: 教授, 会计学院副院长(主持工作)"
-        role_match = re.search(r"职位[\uFF1A:]\s*(.+)$", text)
-        if role_match:
-            role = _clean_text(role_match.group(1))
     left = row.select_one(".main_rpicL")
     image = left.find("img") if left else row.find("img")
     return PersonSummary(

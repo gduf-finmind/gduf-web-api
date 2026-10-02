@@ -286,6 +286,80 @@ def get_jrx_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="jrx"))
 
 
+def get_kjx_xxgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 信息公告 (information announcements)."""
+
+    return _using(client, lambda active: active.get_articles("xxgg", page, source="kjx"))
+
+
+def get_kjx_dthd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 党团活动 (party and league activities)."""
+
+    return _using(client, lambda active: active.get_articles("dthd", page, source="kjx"))
+
+
+def get_kjx_jxgl(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 教学管理 (teaching management)."""
+
+    return _using(client, lambda active: active.get_articles("jxgl", page, source="kjx"))
+
+
+def get_kjx_kydt(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 科研动态 (research updates)."""
+
+    return _using(client, lambda active: active.get_articles("kydt", page, source="kjx"))
+
+
+def get_kjx_js(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教授 (professors)."""
+
+    return _using(client, lambda active: active.get_people("js", page, source="kjx"))
+
+
+def get_kjx_fjs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 副教授 (associate professors)."""
+
+    return _using(client, lambda active: active.get_people("fjs", page, source="kjx"))
+
+
+def get_kjx_xzry(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 行政人员 (administrative staff)."""
+
+    return _using(client, lambda active: active.get_people("xzry", page, source="kjx"))
+
+
+def _kjx_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="kjx"))
+
+
+def get_kjx_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _kjx_content("xyjj", client)
+
+
+def get_kjx_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 师资概况 (faculty overview)."""
+
+    return _kjx_content("szgk", client)
+
+
+def get_kjx_xrld(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 现任领导 (current leadership)."""
+
+    return _kjx_content("xrld", client)
+
+
+def get_kjx_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one kjx article or teacher profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="kjx"))
+
+
 def get_aijspt_bslb(
     *,
     year: int | None = None,

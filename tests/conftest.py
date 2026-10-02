@@ -80,6 +80,28 @@ def jrx_site_response(request: httpx.Request, path: str) -> httpx.Response:
     return httpx.Response(404, request=request)
 
 
+def kjx_site_response(request: httpx.Request, path: str) -> httpx.Response:
+    pages = {
+        "/index/xxgg.htm": "kjx_xxgg.html",
+        "/index/xxgg/22.htm": "kjx_xxgg_p2.html",
+        "/dtjs/dthd.htm": "kjx_dthd.html",
+        "/zyjx/jxgl.htm": "kjx_jxgl.html",
+        "/kxyj/kydt.htm": "kjx_kydt.html",
+        "/szdw/js.htm": "kjx_js.html",
+        "/szdw/js/2.htm": "kjx_js_p2.html",
+        "/szdw/fjs.htm": "kjx_fjs.html",
+        "/szdw/xzry.htm": "kjx_xzry.html",
+        "/yxgk/xyjj.htm": "kjx_xyjj.html",
+        "/szdw/szgk.htm": "kjx_szgk.html",
+        "/yxgk/xrld.htm": "kjx_xrld.html",
+    }
+    if path in pages:
+        return html_response(pages[path], request)
+    if path.startswith("/info/"):
+        return html_response("kjx_detail.html", request)
+    return httpx.Response(404, request=request)
+
+
 def ai_site_response(
     request: httpx.Request,
     path: str,
@@ -149,6 +171,8 @@ def transport(request_log: list[httpx.Request]) -> httpx.MockTransport:
             return main_site_response(request, path)
         if request.url.host == "jrx.gduf.edu.cn":
             return jrx_site_response(request, path)
+        if request.url.host == "kjx.gduf.edu.cn":
+            return kjx_site_response(request, path)
         if request.url.host == "ai-data-competitions.cn":
             return aijspt_response(request, path)
         if request.url.host == "ai.gduf.edu.cn":
