@@ -216,6 +216,76 @@ def get_main_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="main"))
 
 
+def get_jrx_xwgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 新闻公告 (college news and notices)."""
+
+    return _using(client, lambda active: active.get_articles("xwgg", page, source="jrx"))
+
+
+def get_jrx_zrjs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 专任教师 (full-time teaching staff)."""
+
+    return _using(client, lambda active: active.get_people("zrjs", page, source="jrx"))
+
+
+def get_jrx_jfry(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教辅人员 (teaching support staff)."""
+
+    return _using(client, lambda active: active.get_people("jfry", page, source="jrx"))
+
+
+def _jrx_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="jrx"))
+
+
+def get_jrx_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _jrx_content("xyjj", client)
+
+
+def get_jrx_jgsz(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 机构设置 (organizational structure)."""
+
+    return _jrx_content("jgsz", client)
+
+
+def get_jrx_kydt(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 科研动态 (research highlights)."""
+
+    return _jrx_content("kydt", client)
+
+
+def get_jrx_bsfc(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 博士风采 (faculty with doctoral degrees)."""
+
+    return _jrx_content("bsfc", client)
+
+
+def get_jrx_xyld(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院领导 (college leadership)."""
+
+    return _jrx_content("xyld", client)
+
+
+def search_jrx(
+    keyword: str, page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Search the finance and investment college website."""
+
+    return _using(client, lambda active: active.search(keyword, page, source="jrx"))
+
+
+def get_jrx_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one jrx article or staff profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="jrx"))
+
+
 def get_aijspt_bslb(
     *,
     year: int | None = None,

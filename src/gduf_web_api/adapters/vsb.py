@@ -79,6 +79,18 @@ def _clean_text(value: str | None) -> str | None:
     return cleaned or None
 
 
+#: spacing used purely for layout inside names (e.g. 黄　琼, 韦　筱)
+_LAYOUT_SPACE_RE = re.compile(r"[\u3000\u00a0\u200b]+")
+
+
+def _clean_name(value: str | None) -> str | None:
+    """Clean a person name, dropping spacing that is only used for layout."""
+
+    if value is None:
+        return None
+    return _clean_text(_LAYOUT_SPACE_RE.sub("", value))
+
+
 def _parse_date(value: str | None) -> date | None:
     if not value:
         return None
@@ -297,7 +309,7 @@ def people_jrx_img(row: Tag, page_url: str) -> PersonSummary | None:
         return None
     url = _absolute(page_url, str(anchor.get("href")))
     info = anchor.select_one(".info")
-    name = _clean_text(info.get_text(" ", strip=True) if info else str(anchor.get("title") or ""))
+    name = _clean_name(info.get_text(" ", strip=True) if info else str(anchor.get("title") or ""))
     if not url or not name:
         return None
     image = anchor.select_one(".pic img")
