@@ -17,7 +17,7 @@
 | `bxx` | 保险学院 | https://bxx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `xygl` | 信用管理学院 | https://xygl.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `wyx` | 外国语言与文化学院 | https://wyx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
-| `cjcm` | 财经与新媒体学院 | https://cjcm.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `cjcm` | 财经与新媒体学院 | https://cjcm.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `jmxy` | 经济贸易学院 | https://jmxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `gsxy` | 工商管理学院 | https://gsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `jrsxy` | 金融数学与统计学院 | https://jrsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |

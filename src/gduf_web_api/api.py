@@ -422,6 +422,86 @@ def get_bxx_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="bxx"))
 
 
+def get_cjcm_xyxw(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 学院新闻 (college news)."""
+
+    return _using(client, lambda active: active.get_articles("xyxw", page, source="cjcm"))
+
+
+def get_cjcm_tzgg(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 通知公告 (notices and announcements)."""
+
+    return _using(client, lambda active: active.get_articles("tzgg", page, source="cjcm"))
+
+
+def get_cjcm_jxdt(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 教学动态 (teaching updates)."""
+
+    return _using(client, lambda active: active.get_articles("jxdt", page, source="cjcm"))
+
+
+def get_cjcm_kydt(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 科研动态 (research updates)."""
+
+    return _using(client, lambda active: active.get_articles("kydt", page, source="cjcm"))
+
+
+def get_cjcm_xykj(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 校友空间 (alumni space)."""
+
+    return _using(client, lambda active: active.get_articles("xykj", page, source="cjcm"))
+
+
+def get_cjcm_wlyxmtx(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[PersonSummary]:
+    """Get 网络与新媒体系 (network and new media department staff)."""
+
+    return _using(client, lambda active: active.get_people("wlyxmtx", page, source="cjcm"))
+
+
+def _cjcm_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="cjcm"))
+
+
+def get_cjcm_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _cjcm_content("xyjj", client)
+
+
+def get_cjcm_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 师资概况 (faculty overview)."""
+
+    return _cjcm_content("szgk", client)
+
+
+def get_cjcm_xrld(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 现任领导 (current leadership)."""
+
+    return _cjcm_content("xrld", client)
+
+
+def get_cjcm_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one cjcm article or staff profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="cjcm"))
+
+
 def get_xygl_zxzx(
     page: int = 1, *, client: GdufClient | None = None
 ) -> PageResult[ArticleSummary]:

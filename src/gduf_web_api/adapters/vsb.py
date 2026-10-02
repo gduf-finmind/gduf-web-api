@@ -438,7 +438,7 @@ def people_wyx_card(row: Tag, page_url: str) -> PersonSummary | None:
 
 
 def people_cjcm_photo(row: Tag, page_url: str) -> PersonSummary | None:
-    """``<li><a><img alt=name/><span>姓名&nbsp;&nbsp;职务</span></a></li>``."""
+    """``<li><a><img alt=name/><span>姓名 职务</span></a></li>`` (cjcm staff rows)."""
 
     anchor = row.find("a", href=True)
     if not isinstance(anchor, Tag):
@@ -448,14 +448,23 @@ def people_cjcm_photo(row: Tag, page_url: str) -> PersonSummary | None:
         return None
     span = anchor.find("span")
     image = anchor.find("img")
-    display_name = _clean_text(
-        span.get_text(" ", strip=True)
-        if span is not None
-        else (str(image.get("alt") or "") if isinstance(image, Tag) else "")
-    )
-    if not display_name:
+    span_text = _clean_text(span.get_text(" ", strip=True)) if span is not None else None
+    alt_name = _clean_name(str(image.get("alt") or "")) if isinstance(image, Tag) else None
+    name: str | None = None
+    role: str | None = None
+    if alt_name and span_text and span_text.startswith(alt_name):
+        # the span repeats "姓名 职务"; keep only the role tail
+        name = alt_name
+        role = _clean_text(span_text[len(alt_name) :])
+    elif span_text:
+        # the span renders "姓名 职务" in that order
+        parts = span_text.split(maxsplit=1)
+        name = _clean_name(parts[0])
+        role = _clean_text(parts[1]) if len(parts) > 1 else None
+    elif alt_name:
+        name = alt_name
+    if not name:
         return None
-    name, role = _split_name_role(display_name)
     return PersonSummary(
         name=name,
         url=url,
@@ -641,6 +650,11 @@ class VsbAdapter:
 
         return None, None, None, None, None
 
+    def _extra_attachments(self, soup: BeautifulSoup, page_url: str) -> tuple[str, ...]:
+        """Site-specific attachment links that generic link scanning misses."""
+
+        return ()
+
     def _parse_content(
         self,
         soup: BeautifulSoup,
@@ -681,6 +695,9 @@ class VsbAdapter:
                         attachments.append(absolute_href)
                 elif "href" in tag.attrs:
                     del tag.attrs["href"]
+        for link in self._extra_attachments(soup, page_url):
+            if link not in attachments:
+                attachments.append(link)
         published_at, attribution, view_count, previous_url, next_url = self._parse_meta(
             soup, page_url
         )

@@ -160,6 +160,26 @@ def wyx_site_response(request: httpx.Request, path: str) -> httpx.Response:
     return httpx.Response(404, request=request)
 
 
+def cjcm_site_response(request: httpx.Request, path: str) -> httpx.Response:
+    pages = {
+        "/xyxw.htm": "cjcm_xyxw.html",
+        "/xyxw/14.htm": "cjcm_xyxw_p2.html",
+        "/tzgg.htm": "cjcm_tzgg.html",
+        "/jxgz/jxdt.htm": "cjcm_jxdt.html",
+        "/xsky/kydt.htm": "cjcm_kydt.html",
+        "/xykj.htm": "cjcm_xykj.html",
+        "/szdw/wlyxmtx.htm": "cjcm_wlyxmtx.html",
+        "/xygk/xyjj.htm": "cjcm_xyjj.html",
+        "/szdw/szgk.htm": "cjcm_szgk.html",
+        "/xygk/xrld.htm": "cjcm_xrld.html",
+    }
+    if path in pages:
+        return html_response(pages[path], request)
+    if path.startswith("/info/"):
+        return html_response("cjcm_detail.html", request)
+    return httpx.Response(404, request=request)
+
+
 def ai_site_response(
     request: httpx.Request,
     path: str,
@@ -237,6 +257,8 @@ def transport(request_log: list[httpx.Request]) -> httpx.MockTransport:
             return xygl_site_response(request, path)
         if request.url.host == "wyx.gduf.edu.cn":
             return wyx_site_response(request, path)
+        if request.url.host == "cjcm.gduf.edu.cn":
+            return cjcm_site_response(request, path)
         if request.url.host == "ai-data-competitions.cn":
             return aijspt_response(request, path)
         if request.url.host == "ai.gduf.edu.cn":
