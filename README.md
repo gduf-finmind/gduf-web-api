@@ -10,7 +10,7 @@
 
 | 来源 | 学院 / 单位 | 地址 | 状态 | 说明 |
 | --- | --- | --- | --- | --- |
-| `main` | 学校官网 | https://www.gduf.edu.cn/ | ✅ 可用 | 待接入 |
+| `main` | 学校官网 | https://www.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `ai` | 大数据与人工智能学院（ai 域名） | https://ai.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `jrx` | 金融与投资学院 | https://jrx.gduf.edu.cn/ | ✅ 可用 | 待接入 |
 | `kjx` | 会计学院 | https://kjx.gduf.edu.cn/ | ✅ 可用 | 待接入 |

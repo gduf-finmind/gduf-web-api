@@ -17,6 +17,7 @@ from gduf_web_api.models import (
     Notice,
     PageResult,
     PersonSummary,
+    SiteHome,
 )
 
 R = TypeVar("R")
@@ -114,6 +115,105 @@ def get_ai_detail(
     client: GdufClient | None = None,
 ) -> ContentDetail:
     return _using(client, lambda active: active.get_detail(item_or_url, source="ai"))
+
+
+def get_main_home(*, client: GdufClient | None = None) -> SiteHome:
+    """Get the home page information blocks (广金要闻/广金公告/学术活动/媒体广金/院部新闻)."""
+
+    def _home(active: GdufClient) -> SiteHome:
+        result = active.get_home("main")
+        assert isinstance(result, SiteHome)
+        return result
+
+    return _using(client, _home)
+
+
+def get_main_gjyw(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 广金要闻 (university headline news)."""
+
+    return _using(client, lambda active: active.get_articles("gjyw", page, source="main"))
+
+
+def get_main_tzgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 广金公告 (university announcements)."""
+
+    return _using(client, lambda active: active.get_articles("tzgg", page, source="main"))
+
+
+def get_main_xshd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 学术活动 (academic activities)."""
+
+    return _using(client, lambda active: active.get_articles("xshd", page, source="main"))
+
+
+def get_main_mtgj(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 媒体广金 (media coverage)."""
+
+    return _using(client, lambda active: active.get_articles("mtgj", page, source="main"))
+
+
+def get_main_ybxw(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 院部新闻 (college news)."""
+
+    return _using(client, lambda active: active.get_articles("ybxw", page, source="main"))
+
+
+def get_main_xrld(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 现任领导 (current university leaders, with role labels)."""
+
+    return _using(client, lambda active: active.get_people("xrld", page, source="main"))
+
+
+def _main_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="main"))
+
+
+def get_main_gjjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 广金简介 (university profile)."""
+
+    return _main_content("gjjj", client)
+
+
+def get_main_gjyg(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 广金沿革 (university history)."""
+
+    return _main_content("gjyg", client)
+
+
+def get_main_gjjs(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 广金精神 (university spirit)."""
+
+    return _main_content("gjjs", client)
+
+
+def get_main_bxln(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 办学理念 (educational philosophy)."""
+
+    return _main_content("bxln", client)
+
+
+def get_main_jgsz(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 机构设置 (institutional setup)."""
+
+    return _main_content("jgsz", client)
+
+
+def search_main(
+    keyword: str, page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Search the main university website."""
+
+    return _using(client, lambda active: active.search(keyword, page, source="main"))
+
+
+def get_main_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one main-site article or leader profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="main"))
 
 
 def get_aijspt_bslb(

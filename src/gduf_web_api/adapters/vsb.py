@@ -698,7 +698,7 @@ class VsbAdapter:
 
     def _home_section(
         self,
-        soup: BeautifulSoup,
+        scope: BeautifulSoup | Tag,
         page_url: str,
         *,
         category: str,
@@ -710,7 +710,7 @@ class VsbAdapter:
             item
             for item in (
                 row_parser(row, page_url, category)
-                for row in soup.select(selector)
+                for row in scope.select(selector)
             )
             if item is not None
         ]
