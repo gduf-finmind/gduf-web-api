@@ -132,7 +132,11 @@ print(json.dumps(major.to_dict(), ensure_ascii=False))
 | `get_aijspt_bslb` | `keyword` | `str | None` | `None` | 在比赛标题和摘要中进行不区分大小写的包含匹配；不能传空字符串。 |
 | `get_aijspt_bsxq` | `competition_or_id` | `CompetitionSummary | str` | 必填 | 可传比赛列表对象、UUID、`/competitions/{UUID}` 相对路径，或 `https://ai-data-competitions.cn/competitions/{UUID}` 同域绝对 URL。 |
 | `get_aijspt_tzgg` | `limit` | `int` | `20` | 要请求的通知数量，必须为正整数。 |
-| 所有 `get_ai_*`、`search_ai` 和 `get_aijspt_*` 便捷函数 | `client` | `GdufClient | None` | `None` | 仅限关键字传入；复用已有客户端可共享连接。省略时函数会自动创建并关闭客户端。 |
+| 各来源带 `page` 的列表与人员函数（`get_main_*`、`get_jrx_*`、`get_kjx_*`、`get_bxx_*`、`get_xygl_*`、`get_wyx_*`、`get_cjcm_*`） | `page` | `int` | `1` | 从 `1` 开始的正整数；最大页数由网站决定，超出范围抛出 `InvalidPageError`。 |
+| 所有 `get_*_detail`（`get_main_detail`、`get_jrx_detail` 等） | `item_or_url` | `ArticleSummary | PersonSummary | str` | 必填 | 可传列表结果对象、站内相对 URL，或对应来源域名的同域绝对 URL；站外链接抛出 `ValueError`。 |
+| `search_main`、`search_jrx` | `keyword` | `str` | 必填 | 非空搜索词；前后空白会被移除。 |
+| `search_main`、`search_jrx` | `page` | `int` | `1` | 从 `1` 开始的搜索结果页码。 |
+| 所有便捷函数 | `client` | `GdufClient | None` | `None` | 仅限关键字传入；复用已有客户端可共享连接。省略时函数会自动创建并关闭客户端。 |
 
 `get_aijspt_bslb` 的多个筛选参数使用 AND 关系，即返回同时满足所有已传条件的比赛，并保持平台原始排序。`None` 表示不启用对应筛选。
 
@@ -150,6 +154,96 @@ for phase in detail.timeline:
 ```
 
 网页控制每页条目数，因此分页方法只接收从 1 开始的 `page`，不接收 `page_size`。
+
+校主站（`main`）：
+
+- `get_main_home()`：一次请求解析首页的广金要闻、广金公告、学术活动、媒体广金和院部新闻信息块。
+- `get_main_gjyw(page=1)`：广金要闻。
+- `get_main_tzgg(page=1)`：广金公告。
+- `get_main_xshd(page=1)`：学术活动。
+- `get_main_mtgj(page=1)`：媒体广金。
+- `get_main_ybxw(page=1)`：院部新闻。
+- `get_main_xrld(page=1)`：现任领导（含职务标注）。
+- `get_main_gjjj()`：广金简介。
+- `get_main_gjyg()`：广金沿革。
+- `get_main_gjjs()`：广金精神。
+- `get_main_bxln()`：办学理念。
+- `get_main_jgsz()`：机构设置。
+- `search_main(keyword, page=1)`：校主站站内搜索。
+- `get_main_detail(item_or_url)`：文章或领导简介详情。
+
+金融与投资学院（`jrx`）：
+
+- `get_jrx_xwgg(page=1)`：新闻公告。
+- `get_jrx_zrjs(page=1)`：专任教师。
+- `get_jrx_jfry(page=1)`：教辅人员。
+- `get_jrx_xyjj()`：学院简介。
+- `get_jrx_jgsz()`：机构设置。
+- `get_jrx_kydt()`：科研动态。
+- `get_jrx_bsfc()`：博士风采。
+- `get_jrx_xyld()`：学院领导。
+- `search_jrx(keyword, page=1)`：金融与投资学院站内搜索。
+- `get_jrx_detail(item_or_url)`：文章或教师简介详情。
+
+科技金融学院（`kjx`）：
+
+- `get_kjx_xxgg(page=1)`：信息公告。
+- `get_kjx_dthd(page=1)`：党团活动。
+- `get_kjx_jxgl(page=1)`：教学管理。
+- `get_kjx_kydt(page=1)`：科研动态。
+- `get_kjx_js(page=1)`、`get_kjx_fjs(page=1)`、`get_kjx_xzry(page=1)`：教授、副教授、行政人员。
+- `get_kjx_xyjj()`：学院简介。
+- `get_kjx_szgk()`：师资概况。
+- `get_kjx_xrld()`：现任领导。
+- `get_kjx_detail(item_or_url)`：文章或教师简介详情（含上一篇/下一篇）。
+
+保险学院（`bxx`）：
+
+- `get_bxx_xwgg(page=1)`：新闻公告。
+- `get_bxx_kydt(page=1)`：科研动态。
+- `get_bxx_xsjl(page=1)`：学术交流。
+- `get_bxx_xrld(page=1)`、`get_bxx_js(page=1)`、`get_bxx_fjs(page=1)`：现任领导、教授、副教授。
+- `get_bxx_xyjj()`：学院简介。
+- `get_bxx_szgk()`：师资概况。
+- `get_bxx_detail(item_or_url)`：文章或教师简介详情。
+
+信用管理学院（`xygl`）：
+
+- `get_xygl_zxzx(page=1)`：最新资讯。
+- `get_xygl_kydt(page=1)`：科研动态。
+- `get_xygl_msfc(page=1)`：名师风采。
+- `get_xygl_zrjs(page=1)`：专任教师。
+- `get_xygl_xyjj()`：学院简介。
+- `get_xygl_szgk()`：师资概况。
+- `get_xygl_xrld()`：现任领导。
+- `get_xygl_detail(item_or_url)`：文章或教师简介详情。
+
+外国语言与文化学院（`wyx`）：
+
+- `get_wyx_tzgg(page=1)`、`get_wyx_xyxw(page=1)`：通知公告、学院新闻。
+- `get_wyx_djdt(page=1)`、`get_wyx_kydt(page=1)`、`get_wyx_xgdt(page=1)`：党建动态、科研动态、学工动态。
+- `get_wyx_js(page=1)`、`get_wyx_fjs(page=1)`：教授、副教授（含职务/称）。
+- `get_wyx_xyjj()`：学院简介。
+- `get_wyx_szgk()`：队伍概况。
+- `get_wyx_xrld()`：现任领导。
+- `get_wyx_detail(item_or_url)`：文章或教师简介详情。
+
+财经与新媒体学院（`cjcm`）：
+
+- `get_cjcm_xyxw(page=1)`、`get_cjcm_tzgg(page=1)`：学院新闻、通知公告。
+- `get_cjcm_jxdt(page=1)`、`get_cjcm_kydt(page=1)`、`get_cjcm_xykj(page=1)`：教学动态、科研动态、校友空间。
+- `get_cjcm_wlyxmtx(page=1)`：网络与新媒体系教师（含职务）。
+- `get_cjcm_xyjj()`：学院简介。
+- `get_cjcm_szgk()`：师资概况。
+- `get_cjcm_xrld()`：现任领导。
+- `get_cjcm_detail(item_or_url)`：文章或教师简介详情（含上一篇/下一篇与附件下载）。
+
+各来源的补充约定：
+
+- 站内搜索只有 `search_ai`、`search_jrx`、`search_main` 三站可用；其余来源不支持搜索，调用 `client.search(..., source=...)` 会抛出 `ParseError`。
+- 列表与人员函数统一接收从 1 开始的 `page`；超出栏目总页数抛出 `InvalidPageError`。
+- `get_*_detail` 接受列表结果对象、站内相对 URL 或对应来源域名的绝对 URL；部分栏目（如 `cjcm` 的学院新闻）会链接到微信公众号等站外文章，这类链接无法作为详情抓取，直接传入会抛出 `ValueError`。
+- `cjcm` 详情的上一篇/下一篇指向站外微信文章时，仅作为 URL 返回，不会发起请求。
 
 ## 复用连接与异常
 
