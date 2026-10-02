@@ -139,6 +139,27 @@ def xygl_site_response(request: httpx.Request, path: str) -> httpx.Response:
     return httpx.Response(404, request=request)
 
 
+def wyx_site_response(request: httpx.Request, path: str) -> httpx.Response:
+    pages = {
+        "/tzgg.htm": "wyx_tzgg.html",
+        "/tzgg/1.htm": "wyx_tzgg_p2.html",
+        "/xyxw.htm": "wyx_xyxw.html",
+        "/dqgz/djdt.htm": "wyx_djdt.html",
+        "/xsky/kydt.htm": "wyx_kydt.html",
+        "/xszc/xgdt.htm": "wyx_xgdt.html",
+        "/szll/js.htm": "wyx_js.html",
+        "/szll/fjs.htm": "wyx_fjs.html",
+        "/xygk/xyjj.htm": "wyx_xyjj.html",
+        "/szll/dwgk.htm": "wyx_szgk.html",
+        "/xygk/xrld.htm": "wyx_xrld.html",
+    }
+    if path in pages:
+        return html_response(pages[path], request)
+    if path.startswith("/info/"):
+        return html_response("wyx_detail.html", request)
+    return httpx.Response(404, request=request)
+
+
 def ai_site_response(
     request: httpx.Request,
     path: str,
@@ -214,6 +235,8 @@ def transport(request_log: list[httpx.Request]) -> httpx.MockTransport:
             return bxx_site_response(request, path)
         if request.url.host == "xygl.gduf.edu.cn":
             return xygl_site_response(request, path)
+        if request.url.host == "wyx.gduf.edu.cn":
+            return wyx_site_response(request, path)
         if request.url.host == "ai-data-competitions.cn":
             return aijspt_response(request, path)
         if request.url.host == "ai.gduf.edu.cn":

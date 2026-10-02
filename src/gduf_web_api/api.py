@@ -484,6 +484,80 @@ def get_xygl_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="xygl"))
 
 
+def get_wyx_tzgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 通知公告 (notices and announcements)."""
+
+    return _using(client, lambda active: active.get_articles("tzgg", page, source="wyx"))
+
+
+def get_wyx_xyxw(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 学院新闻 (college news)."""
+
+    return _using(client, lambda active: active.get_articles("xyxw", page, source="wyx"))
+
+
+def get_wyx_djdt(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 党建动态 (party building updates)."""
+
+    return _using(client, lambda active: active.get_articles("djdt", page, source="wyx"))
+
+
+def get_wyx_kydt(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 科研动态 (research updates)."""
+
+    return _using(client, lambda active: active.get_articles("kydt", page, source="wyx"))
+
+
+def get_wyx_xgdt(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 学工动态 (student affairs updates)."""
+
+    return _using(client, lambda active: active.get_articles("xgdt", page, source="wyx"))
+
+
+def get_wyx_js(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教授 (professors)."""
+
+    return _using(client, lambda active: active.get_people("js", page, source="wyx"))
+
+
+def get_wyx_fjs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 副教授 (associate professors)."""
+
+    return _using(client, lambda active: active.get_people("fjs", page, source="wyx"))
+
+
+def _wyx_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="wyx"))
+
+
+def get_wyx_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _wyx_content("xyjj", client)
+
+
+def get_wyx_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 队伍概况 (faculty overview)."""
+
+    return _wyx_content("szgk", client)
+
+
+def get_wyx_xrld(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 现任领导 (current leadership)."""
+
+    return _wyx_content("xrld", client)
+
+
+def get_wyx_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one wyx article or teacher profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="wyx"))
+
+
 def get_aijspt_bslb(
     *,
     year: int | None = None,
