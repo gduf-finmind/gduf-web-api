@@ -121,6 +121,24 @@ def bxx_site_response(request: httpx.Request, path: str) -> httpx.Response:
     return httpx.Response(404, request=request)
 
 
+def xygl_site_response(request: httpx.Request, path: str) -> httpx.Response:
+    pages = {
+        "/index/zxzx.htm": "xygl_zxzx.html",
+        "/index/zxzx/13.htm": "xygl_zxzx_p2.html",
+        "/xsky/kydt.htm": "xygl_kydt.html",
+        "/index/msfc.htm": "xygl_msfc.html",
+        "/szdw/zrjs.htm": "xygl_zrjs.html",
+        "/xygk/xyjj.htm": "xygl_xyjj.html",
+        "/szdw/szgk.htm": "xygl_szgk.html",
+        "/xygk/xrld.htm": "xygl_xrld.html",
+    }
+    if path in pages:
+        return html_response(pages[path], request)
+    if path.startswith("/info/"):
+        return html_response("xygl_detail.html", request)
+    return httpx.Response(404, request=request)
+
+
 def ai_site_response(
     request: httpx.Request,
     path: str,
@@ -194,6 +212,8 @@ def transport(request_log: list[httpx.Request]) -> httpx.MockTransport:
             return kjx_site_response(request, path)
         if request.url.host == "bxx.gduf.edu.cn":
             return bxx_site_response(request, path)
+        if request.url.host == "xygl.gduf.edu.cn":
+            return xygl_site_response(request, path)
         if request.url.host == "ai-data-competitions.cn":
             return aijspt_response(request, path)
         if request.url.host == "ai.gduf.edu.cn":

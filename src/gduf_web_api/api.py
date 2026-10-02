@@ -422,6 +422,68 @@ def get_bxx_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="bxx"))
 
 
+def get_xygl_zxzx(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 最新资讯 (latest updates)."""
+
+    return _using(client, lambda active: active.get_articles("zxzx", page, source="xygl"))
+
+
+def get_xygl_kydt(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 科研动态 (research updates)."""
+
+    return _using(client, lambda active: active.get_articles("kydt", page, source="xygl"))
+
+
+def get_xygl_msfc(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 名师风采 (distinguished teachers)."""
+
+    return _using(client, lambda active: active.get_articles("msfc", page, source="xygl"))
+
+
+def get_xygl_zrjs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 专任教师 (full-time teaching staff)."""
+
+    return _using(client, lambda active: active.get_people("zrjs", page, source="xygl"))
+
+
+def _xygl_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="xygl"))
+
+
+def get_xygl_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _xygl_content("xyjj", client)
+
+
+def get_xygl_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 师资概况 (faculty overview)."""
+
+    return _xygl_content("szgk", client)
+
+
+def get_xygl_xrld(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 现任领导 (current leadership)."""
+
+    return _xygl_content("xrld", client)
+
+
+def get_xygl_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one xygl article or teacher profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="xygl"))
+
+
 def get_aijspt_bslb(
     *,
     year: int | None = None,
