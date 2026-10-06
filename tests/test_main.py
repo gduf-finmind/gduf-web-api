@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
 import httpx
 import pytest
@@ -8,6 +9,7 @@ import pytest
 from gduf_web_api import (
     GdufClient,
     InvalidPageError,
+    ParseError,
     get_main_detail,
     get_main_gjjj,
     get_main_gjyw,
@@ -93,6 +95,44 @@ def test_main_static_content(client: GdufClient, request_log: list[httpx.Request
     assert result.kind == "static"
     assert "广东金融学院是一所省属公办普通本科院校" in result.content_text
     assert "script" not in result.content_html
+
+
+def test_main_organization_content_uses_special_list_container() -> None:
+    """真实机构设置快照不含文章容器。应读取专用机构列表并排除导航和页脚。
+
+    同时验证正文完整到最后的服务机构。不因列表模板与文章模板不同而抛解析错误。
+    """
+    html = (Path(__file__).parent / "fixtures/main_jgsz.html").read_text(encoding="utf-8")
+    def respond(request: httpx.Request) -> httpx.Response:
+        """只接受机构设置原始路径。返回公开网页快照供实际解析器验证。
+
+        不访问真实网络。通过固定路径约束确保使用学校机构设置模板。
+        """
+        assert request.url.path == "/xygk/jgsz.htm"
+        return httpx.Response(200, text=html)
+    with GdufClient(transport=httpx.MockTransport(respond)) as client:
+        result = client.get_content("jgsz", source="main")
+    assert result.title == "机构设置"
+    assert result.kind == "static" and result.source == "main"
+    for name in ("党政管理机构", "教学机构", "基层党组织", "经营与服务性机构"):
+        assert name in result.content_text
+    assert "邮编" not in result.content_text and "广金简介" not in result.content_text
+    assert "script" not in result.content_html
+
+
+def test_main_unknown_body_is_still_parse_error() -> None:
+    """未知结构仍返回解析错误。不能用整个页面或侧栏内容伪造成功正文。
+
+    即使侧栏出现同名机构列表。也必须位于学校主内容区域才可作为正文。
+    """
+    html = '<div class="k-main-l"><div class="k-jgsz">侧栏</div></div>'
+    with (
+        GdufClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, text=html)
+        )) as client,
+        pytest.raises(ParseError, match="content body container not found"),
+    ):
+        client.get_content("jgsz", source="main")
 
 
 def test_main_detail_from_url(client: GdufClient) -> None:

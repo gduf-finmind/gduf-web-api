@@ -136,6 +136,17 @@ class MainSiteAdapter(VsbAdapter):
 
     # -- content title / meta ------------------------------------------------
 
+    def _find_body(self, soup: BeautifulSoup) -> Tag | None:
+        """从学校官网页面定位正文。返回文章容器或机构设置专用列表。
+
+        机构设置不是 VSB 文章页。没有 vsb_content 标记。仅接受主内容区内的
+        k-jgsz 列表。避免把侧栏导航、页脚或未知模板当作正文。
+        """
+        body = super()._find_body(soup)
+        if body is not None:
+            return body
+        return soup.select_one(".k-main-r .k-main-nr .k-jgsz")
+
     @staticmethod
     def _detail_title(soup: BeautifulSoup) -> str | None:
         node = soup.select_one("div.title")
