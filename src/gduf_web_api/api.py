@@ -680,6 +680,86 @@ def get_jmx_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="jmx"))
 
 
+def get_gsgl_xwxx(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 新闻信息 (college news)."""
+
+    return _using(client, lambda active: active.get_articles("xwxx", page, source="gsgl"))
+
+
+def get_gsgl_jyhd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 教研活动 (teaching and research activities)."""
+
+    return _using(client, lambda active: active.get_articles("jyhd", page, source="gsgl"))
+
+
+def get_gsgl_djhd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 党建活动 (party building activities)."""
+
+    return _using(client, lambda active: active.get_articles("djhd", page, source="gsgl"))
+
+
+def get_gsgl_xshd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 学生活动 (student activities)."""
+
+    return _using(client, lambda active: active.get_articles("xshd", page, source="gsgl"))
+
+
+def get_gsgl_js(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教授 (professors)."""
+
+    return _using(client, lambda active: active.get_people("js", page, source="gsgl"))
+
+
+def get_gsgl_fjs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 副教授 (associate professors)."""
+
+    return _using(client, lambda active: active.get_people("fjs", page, source="gsgl"))
+
+
+def get_gsgl_bs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 博士 (faculty with doctoral degrees)."""
+
+    return _using(client, lambda active: active.get_people("bs", page, source="gsgl"))
+
+
+def _gsgl_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="gsgl"))
+
+
+def get_gsgl_ykjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院概况 (college profile)."""
+
+    return _gsgl_content("ykjj", client)
+
+
+def get_gsgl_ldjs(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 领导介绍 (leadership)."""
+
+    return _gsgl_content("ldjs", client)
+
+
+def get_gsgl_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 师资概况 (faculty overview)."""
+
+    return _gsgl_content("szgk", client)
+
+
+def get_gsgl_glry(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 管理人员 (administrative staff)."""
+
+    return _gsgl_content("glry", client)
+
+
+def get_gsgl_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one gsgl article or staff profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="gsgl"))
+
+
 def get_xygl_zxzx(
     page: int = 1, *, client: GdufClient | None = None
 ) -> PageResult[ArticleSummary]:

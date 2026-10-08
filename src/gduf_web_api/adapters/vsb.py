@@ -595,6 +595,20 @@ def _download_attachments(soup: BeautifulSoup, page_url: str) -> tuple[str, ...]
     return tuple(found)
 
 
+def people_em_name(row: Tag, page_url: str) -> PersonSummary | None:
+    """``<li><a href><span>date</span><em>姓名</em></a></li>`` (gsgl/jrsx staff lists)."""
+
+    anchor = row.find("a", href=True)
+    if not isinstance(anchor, Tag):
+        return None
+    url = _absolute(page_url, str(anchor.get("href")))
+    em = anchor.find("em")
+    name = _clean_name(em.get_text(" ", strip=True) if em else anchor.get_text(" ", strip=True))
+    if not url or not name:
+        return None
+    return PersonSummary(name=name, url=url)
+
+
 # ---------------------------------------------------------------------------
 # Adapter base.
 # ---------------------------------------------------------------------------

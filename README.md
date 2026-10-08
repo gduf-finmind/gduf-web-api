@@ -19,7 +19,7 @@
 | `wyx` | 外国语言与文化学院 | https://wyx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `cjcm` | 财经与新媒体学院 | https://cjcm.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `jmx` | 经济贸易学院 | https://jmx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
-| `gsxy` | 工商管理学院 | https://gsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `gsgl` | 工商管理学院 | https://gsgl.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `jrsxy` | 金融数学与统计学院 | https://jrsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `gjjrx` | 国家金融学学院 | https://gjjrx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `dsai` | 大数据与人工智能学院（dsai 域名） | https://dsai.gduf.edu.cn/ | ❌ 不可用 | 新域名 TLS 握手失败；同院内容仍可由 `ai` 来源获取 |
