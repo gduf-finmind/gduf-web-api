@@ -26,7 +26,7 @@ from gduf_web_api.models import (
 if TYPE_CHECKING:
     from gduf_web_api.adapters.base import CompetitionSourceAdapter, SourceAdapter
 
-DEFAULT_USER_AGENT = "gduf-web-api/0.3.0 (+https://pypi.org/project/gduf-web-api/)"
+DEFAULT_USER_AGENT = "gduf-web-api/0.4.0 (+https://pypi.org/project/gduf-web-api/)"
 
 
 class GdufClient:

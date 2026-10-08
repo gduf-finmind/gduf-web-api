@@ -178,7 +178,7 @@ from gduf_web_api.models import (
 )
 from gduf_web_api.sources import SourceInfo, get_source_info, list_sources
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "AiHome",

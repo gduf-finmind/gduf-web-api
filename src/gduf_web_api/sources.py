@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 from gduf_web_api.models import JsonModel
 
-CHECKED_AT = "2026-10-01"
+CHECKED_AT = "2026-10-08"
 
 TLS_NOTE = "TLS 握手失败 (SSL: UNEXPECTED_EOF_WHILE_READING), 站点暂不可访问"
 DSAI_NOTE = (

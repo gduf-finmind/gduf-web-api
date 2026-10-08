@@ -6,7 +6,7 @@
 
 ## 数据源状态
 
-以下站点状态于 `2026-10-01` 探测确认（代码：`list_sources()` / `get_source_info(code)`，见 `gduf_web_api.sources`）。
+以下站点状态于 `2026-10-08` 探测确认（代码：`list_sources()` / `get_source_info(code)`，见 `gduf_web_api.sources`）。
 
 | 来源 | 学院 / 单位 | 地址 | 状态 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -132,7 +132,7 @@ print(json.dumps(major.to_dict(), ensure_ascii=False))
 | `get_aijspt_bslb` | `keyword` | `str | None` | `None` | 在比赛标题和摘要中进行不区分大小写的包含匹配；不能传空字符串。 |
 | `get_aijspt_bsxq` | `competition_or_id` | `CompetitionSummary | str` | 必填 | 可传比赛列表对象、UUID、`/competitions/{UUID}` 相对路径，或 `https://ai-data-competitions.cn/competitions/{UUID}` 同域绝对 URL。 |
 | `get_aijspt_tzgg` | `limit` | `int` | `20` | 要请求的通知数量，必须为正整数。 |
-| 各来源带 `page` 的列表与人员函数（`get_main_*`、`get_jrx_*`、`get_kjx_*`、`get_bxx_*`、`get_xygl_*`、`get_wyx_*`、`get_cjcm_*`） | `page` | `int` | `1` | 从 `1` 开始的正整数；最大页数由网站决定，超出范围抛出 `InvalidPageError`。 |
+| 各来源带 `page` 的列表与人员函数（`get_main_*`、`get_jrx_*`、`get_kjx_*`、`get_bxx_*`、`get_xygl_*`、`get_wyx_*`、`get_cjcm_*`、`get_gjjrx_*`、`get_jmx_*`、`get_gsgl_*`、`get_xxgc_*`、`get_jrsx_*`） | `page` | `int` | `1` | 从 `1` 开始的正整数；最大页数由网站决定，超出范围抛出 `InvalidPageError`。 |
 | 所有 `get_*_detail`（`get_main_detail`、`get_jrx_detail` 等） | `item_or_url` | `ArticleSummary | PersonSummary | str` | 必填 | 可传列表结果对象、站内相对 URL，或对应来源域名的同域绝对 URL；站外链接抛出 `ValueError`。 |
 | `search_main`、`search_jrx` | `keyword` | `str` | 必填 | 非空搜索词；前后空白会被移除。 |
 | `search_main`、`search_jrx` | `page` | `int` | `1` | 从 `1` 开始的搜索结果页码。 |
@@ -237,6 +237,60 @@ for phase in detail.timeline:
 - `get_cjcm_szgk()`：师资概况。
 - `get_cjcm_xrld()`：现任领导。
 - `get_cjcm_detail(item_or_url)`：文章或教师简介详情（含上一篇/下一篇与附件下载）。
+
+经济贸易学院（`jmx`）：
+
+- `get_jmx_xwgg(page=1)`：新闻公告。
+- `get_jmx_djhd(page=1)`、`get_jmx_jxhd(page=1)`、`get_jmx_kyhd(page=1)`：党建活动、教学活动、科研活动。
+- `get_jmx_ssfc(page=1)`：硕士风采。
+- `get_jmx_xyjj(page=1)`、`get_jmx_szdw(page=1)`：学院概况、师资队伍（栏目文章列表）。
+- `get_jmx_jgsz()`：机构设置。
+- `get_jmx_xrld()`：现任领导。
+- `get_jmx_detail(item_or_url)`：文章详情（含上一篇/下一篇与附件下载）。
+
+工商管理学院（`gsgl`）：
+
+- `get_gsgl_xwxx(page=1)`：新闻信息。
+- `get_gsgl_jyhd(page=1)`、`get_gsgl_djhd(page=1)`、`get_gsgl_xshd(page=1)`：教研活动、党建活动、学生活动。
+- `get_gsgl_js(page=1)`、`get_gsgl_fjs(page=1)`、`get_gsgl_bs(page=1)`：教授、副教授、博士。
+- `get_gsgl_ykjj()`：学院概况。
+- `get_gsgl_ldjs()`：领导介绍。
+- `get_gsgl_szgk()`：师资概况。
+- `get_gsgl_glry()`：管理人员。
+- `get_gsgl_detail(item_or_url)`：文章或教师简介详情（含上一篇/下一篇与附件下载）。
+
+金融数学与统计学院（`jrsx`）：
+
+- `get_jrsx_xwxx(page=1)`、`get_jrsx_tzgg(page=1)`：新闻信息、通知公告（栏目内可能含站外微信文章链接）。
+- `get_jrsx_msfc(page=1)`：名师风采。
+- `get_jrsx_szgk(page=1)`：师资概况（栏目文章列表）。
+- `get_jrsx_jsml(page=1)`、`get_jrsx_ssds(page=1)`：教师名录、硕士导师。
+- `get_jrsx_xyjj()`：学院简介。
+- `get_jrsx_xyld()`：学院领导。
+- `get_jrsx_detail(item_or_url)`：文章或教师简介详情（含上一篇/下一篇与附件下载）。
+
+国家金融学学院（`gjjrx`）：
+
+- `get_gjjrx_xyxw(page=1)`、`get_gjjrx_tzgg(page=1)`：学院新闻、通知公告。
+- `get_gjjrx_jxky(page=1)`、`get_gjjrx_dtxg(page=1)`、`get_gjjrx_gjzk(page=1)`：教学科研、党团学工、国金智库。
+- `get_gjjrx_xrld(page=1)`：学院领导（含职务与联系方式）。
+- `get_gjjrx_zrjs(page=1)`、`get_gjjrx_jfry(page=1)`：专任教师、教辅人员（含部门）。
+- `get_gjjrx_bsfc(page=1)`、`get_gjjrx_jsfc(page=1)`：博士风采、教授风采。
+- `get_gjjrx_xyjj()`：学院简介。
+- `get_gjjrx_jgsz()`：机构设置。
+- `get_gjjrx_szgk()`：师资概况。
+- `search_gjjrx(keyword, page=1)`：国家金融学学院站内搜索。
+- `get_gjjrx_detail(item_or_url)`：文章或教师简介详情（含上一条/下一条与附件下载）。
+
+计算机学院（`xxgc`）：
+
+- `get_xxgc_xyxw(page=1)`、`get_xxgc_tzgg(page=1)`：学院新闻、通知公告。
+- `get_xxgc_jxhd(page=1)`：教学活动。
+- `get_xxgc_jsml(page=1)`、`get_xxgc_jfry(page=1)`：教师名录、教辅人员（含个人简介与照片）。
+- `get_xxgc_xyjj()`：学院简介。
+- `get_xxgc_ldjs()`：领导介绍。
+- `get_xxgc_szgk()`：师资概况。
+- `get_xxgc_detail(item_or_url)`：文章或教师简介详情（含上一篇/下一篇与附件下载）。
 
 各来源的补充约定：
 

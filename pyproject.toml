@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gduf-web-api"
-version = "0.3.0"
+version = "0.4.0"
 description = "广东金融学院各学院公开网站的类型化非官方 Python 客户端。"
 readme = "README.md"
 requires-python = ">=3.10"
