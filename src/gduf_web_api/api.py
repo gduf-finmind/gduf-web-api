@@ -822,6 +822,68 @@ def get_xxgc_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="xxgc"))
 
 
+def get_jrsx_xwxx(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 新闻信息 (college news)."""
+
+    return _using(client, lambda active: active.get_articles("xwxx", page, source="jrsx"))
+
+
+def get_jrsx_tzgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 通知公告 (notices and announcements)."""
+
+    return _using(client, lambda active: active.get_articles("tzgg", page, source="jrsx"))
+
+
+def get_jrsx_msfc(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 名师风采 (outstanding teacher features)."""
+
+    return _using(client, lambda active: active.get_articles("msfc", page, source="jrsx"))
+
+
+def get_jrsx_szgk(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 师资概况 (faculty overview entries)."""
+
+    return _using(client, lambda active: active.get_articles("szgk", page, source="jrsx"))
+
+
+def get_jrsx_jsml(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教师名录 (teacher roster)."""
+
+    return _using(client, lambda active: active.get_people("jsml", page, source="jrsx"))
+
+
+def get_jrsx_ssds(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 硕士导师 (master's supervisors)."""
+
+    return _using(client, lambda active: active.get_people("ssds", page, source="jrsx"))
+
+
+def _jrsx_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="jrsx"))
+
+
+def get_jrsx_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _jrsx_content("xyjj", client)
+
+
+def get_jrsx_xyld(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院领导 (college leadership)."""
+
+    return _jrsx_content("xyld", client)
+
+
+def get_jrsx_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one jrsx article or staff profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="jrsx"))
+
+
 def get_xygl_zxzx(
     page: int = 1, *, client: GdufClient | None = None
 ) -> PageResult[ArticleSummary]:

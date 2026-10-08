@@ -17,7 +17,7 @@ def test_list_sources_covers_all_college_sites() -> None:
         "jmx",
         "xygl",
         "gsgl",
-        "jrsxy",
+        "jrsx",
         "gjjrx",
         "xxgc",
         "fx",
