@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 import httpx
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 SITES = {
     "gjjrx": "https://gjjrx.gduf.edu.cn/",
@@ -35,7 +35,7 @@ def probe(name: str, base: str) -> dict:
         if "charset=" not in response.headers.get("content-type", "").lower():
             response.encoding = "utf-8"
         html = response.text
-    except Exception as exc:  # noqa: BLE001 - report everything
+    except Exception as exc:
         report["errors"].append(f"{type(exc).__name__}: {exc}")
         return report
     (OUT / f"{name}_home.html").write_text(html, encoding="utf-8")

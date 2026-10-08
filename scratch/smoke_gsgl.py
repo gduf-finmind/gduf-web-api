@@ -16,7 +16,10 @@ for cat in ("xwxx", "jyhd", "djhd", "xshd"):
 
 for cat in ("js", "fjs", "bs"):
     result = client.get_people(cat, 1, source="gsgl")
-    print(f"PEO {cat}: total={result.total_items} pages={result.total_pages} first={result.items[0].name}")
+    print(
+        f"PEO {cat}: total={result.total_items} pages={result.total_pages} "
+        f"first={result.items[0].name}"
+    )
 
 for cat in ("ykjj", "ldjs", "szgk", "glry"):
     result = client.get_content(cat, source="gsgl")

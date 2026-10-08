@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import httpx
 from pathlib import Path
+
+import httpx
 
 from gduf_web_api import GdufClient
 from gduf_web_api.errors import InvalidPageError
@@ -46,8 +47,9 @@ for cat in ("xwxx", "tzgg", "msfc", "szgk"):
         result = client.get_articles(cat, 1, source="jrsx")
         first = result.items[0]
         print(
-            f"ART {cat}: n={len(result.items)} total={result.total_items} pages={result.total_pages} "
-            f"first_url={first.url} first_title={first.title[:40]!r} first_date={first.published_at}"
+            f"ART {cat}: n={len(result.items)} total={result.total_items} "
+            f"pages={result.total_pages} first_url={first.url} "
+            f"first_title={first.title[:40]!r} first_date={first.published_at}"
         )
     except Exception as exc:
         print(f"ART {cat}: ERROR {type(exc).__name__}: {exc}")
@@ -56,14 +58,20 @@ for cat in ("jsml", "ssds"):
     try:
         result = client.get_people(cat, 1, source="jrsx")
         first = result.items[0]
-        print(f"PEO {cat}: n={len(result.items)} total={result.total_items} pages={result.total_pages} first={first.name!r} {first.url}")
+        print(
+            f"PEO {cat}: n={len(result.items)} total={result.total_items} "
+            f"pages={result.total_pages} first={first.name!r} {first.url}"
+        )
     except Exception as exc:
         print(f"PEO {cat}: ERROR {type(exc).__name__}: {exc}")
 
 for cat in ("xyjj", "xyld"):
     try:
         result = client.get_content(cat, source="jrsx")
-        print(f"CON {cat}: title={result.title!r} kind={result.kind} len={len(result.content_text)}")
+        print(
+            f"CON {cat}: title={result.title!r} kind={result.kind} "
+            f"len={len(result.content_text)}"
+        )
     except Exception as exc:
         print(f"CON {cat}: ERROR {type(exc).__name__}: {exc}")
 

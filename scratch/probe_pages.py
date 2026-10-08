@@ -97,7 +97,7 @@ def dump(name: str, base: str, path: str, client: httpx.Client) -> None:
     url = base + path.lstrip("/")
     try:
         response = client.get(url)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print(f"--- {name} {path} ERROR {type(exc).__name__}: {exc}")
         return
     safe = path.strip("/").replace("/", "_") or "index"

@@ -17,7 +17,10 @@ for cat in ("xyxw", "tzgg", "jxhd"):
 for cat in ("jsml", "jfry"):
     result = client.get_people(cat, 1, source="xxgc")
     first = result.items[0]
-    print(f"PEO {cat}: total={result.total_items} pages={result.total_pages} first={first.name} bio_ok={bool(first.responsibility)}")
+    print(
+        f"PEO {cat}: total={result.total_items} pages={result.total_pages} "
+        f"first={first.name} bio_ok={bool(first.responsibility)}"
+    )
 
 for cat in ("xyjj", "ldjs", "szgk"):
     result = client.get_content(cat, source="xxgc")
@@ -25,4 +28,7 @@ for cat in ("xyjj", "ldjs", "szgk"):
 
 summary = client.get_articles("xyxw", 1, source="xxgc").items[0]
 detail = client.get_detail(summary, source="xxgc")
-print(f"DET: title={detail.title[:26]!r} pub={detail.published_at} attr={detail.attribution} next={detail.next_url}")
+print(
+    f"DET: title={detail.title[:26]!r} pub={detail.published_at} "
+    f"attr={detail.attribution} next={detail.next_url}"
+)

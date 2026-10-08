@@ -28,7 +28,7 @@ client = httpx.Client(
     follow_redirects=True,
     headers={"User-Agent": UA},
 )
-for code, entries in PAGES.items():
+for _code, entries in PAGES.items():
     for url, name in entries:
         response = client.get(url)
         html = response.text
@@ -41,10 +41,13 @@ for code, entries in PAGES.items():
             anchor = rows[0].find("a", href=True)
             if anchor is not None:
                 first = re.sub(r"\s+", " ", anchor.get_text(" ", strip=True))[:40]
-        print(f"{name}: status={response.status_code} rows={len(rows)} marker={marker.group(0) if marker else None} first={first}")
+        print(
+            f"{name}: status={response.status_code} rows={len(rows)} "
+            f"marker={marker.group(0) if marker else None} first={first}"
+        )
 
 # gjjrx search page 2
-encoded = base64.b64encode("研究生".encode("utf-8")).decode("ascii")
+encoded = base64.b64encode("研究生".encode()).decode("ascii")
 response = client.get(
     "https://gjjrx.gduf.edu.cn/search.jsp",
     params={

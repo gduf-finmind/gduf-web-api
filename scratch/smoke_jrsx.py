@@ -16,7 +16,10 @@ for cat in ("xwxx", "tzgg", "msfc", "szgk"):
 
 for cat in ("jsml", "ssds"):
     result = client.get_people(cat, 1, source="jrsx")
-    print(f"PEO {cat}: total={result.total_items} pages={result.total_pages} first={result.items[0].name}")
+    print(
+        f"PEO {cat}: total={result.total_items} pages={result.total_pages} "
+        f"first={result.items[0].name}"
+    )
 
 for cat in ("xyjj", "xyld"):
     result = client.get_content(cat, source="jrsx")

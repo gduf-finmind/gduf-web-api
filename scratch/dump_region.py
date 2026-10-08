@@ -11,7 +11,9 @@ mode = sys.argv[2] if len(sys.argv) > 2 else "meta"
 
 if mode == "meta":
     # print the article detail region: h1/title + meta line + prev/next
-    for marker in ("发布日期", "发布时间", "上一篇", "下一篇", "附件", "点击数", "浏览次数", "来源"):
+    for marker in (
+        "发布日期", "发布时间", "上一篇", "下一篇", "附件", "点击数", "浏览次数", "来源"
+    ):
         i = html.find(marker)
         if i != -1:
             snippet = html[max(0, i - 300) : i + 300]

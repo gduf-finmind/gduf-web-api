@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import httpx
 from pathlib import Path
+
+import httpx
 
 from gduf_web_api import GdufClient
 from gduf_web_api.errors import InvalidPageError
@@ -58,8 +59,9 @@ for cat in articles:
         result = client.get_articles(cat, 1, source="gjjrx")
         first = result.items[0]
         print(
-            f"ART {cat}: n={len(result.items)} total={result.total_items} pages={result.total_pages} "
-            f"first_url={first.url} first_title={first.title!r} first_date={first.published_at}"
+            f"ART {cat}: n={len(result.items)} total={result.total_items} "
+            f"pages={result.total_pages} first_url={first.url} "
+            f"first_title={first.title!r} first_date={first.published_at}"
         )
     except Exception as exc:
         print(f"ART {cat}: ERROR {type(exc).__name__}: {exc}")
@@ -69,8 +71,10 @@ for cat in ("xrld", "zrjs", "jfry", "bsfc", "jsfc"):
         result = client.get_people(cat, 1, source="gjjrx")
         first = result.items[0]
         print(
-            f"PEO {cat}: n={len(result.items)} total={result.total_items} pages={result.total_pages} "
-            f"first_name={first.name!r} first_role={first.role!r} first_url={first.url} img={first.image_url is not None}"
+            f"PEO {cat}: n={len(result.items)} total={result.total_items} "
+            f"pages={result.total_pages} "
+            f"first_name={first.name!r} first_role={first.role!r} "
+            f"first_url={first.url} img={first.image_url is not None}"
         )
     except Exception as exc:
         print(f"PEO {cat}: ERROR {type(exc).__name__}: {exc}")
@@ -78,7 +82,10 @@ for cat in ("xrld", "zrjs", "jfry", "bsfc", "jsfc"):
 for cat in ("xyjj", "jgsz", "szgk"):
     try:
         result = client.get_content(cat, source="gjjrx")
-        print(f"CON {cat}: title={result.title!r} kind={result.kind} len={len(result.content_text)}")
+        print(
+            f"CON {cat}: title={result.title!r} kind={result.kind} "
+            f"len={len(result.content_text)}"
+        )
     except Exception as exc:
         print(f"CON {cat}: ERROR {type(exc).__name__}: {exc}")
 
@@ -102,27 +109,35 @@ try:
     first = result.items[0]
     print(
         "SRCH: n=", len(result.items), "total=", result.total_items, "pages=", result.total_pages,
-        "first_url=", first.url, "first_title=", first.title[:30], "first_date=", first.published_at,
+        "first_url=", first.url, "first_title=", first.title[:30],
+        "first_date=", first.published_at,
     )
 except Exception as exc:
     print("SRCH ERROR:", type(exc).__name__, exc)
 
 try:
     result = client.search("研究生", 2, source="gjjrx")
-    print("SRCH2: n=", len(result.items), "total=", result.total_items, "pages=", result.total_pages, "first_url=", result.items[0].url)
+    print(
+        "SRCH2: n=", len(result.items), "total=", result.total_items,
+        "pages=", result.total_pages, "first_url=", result.items[0].url,
+    )
 except Exception as exc:
     print("SRCH2 ERROR:", type(exc).__name__, exc)
 
 # second pages
 for cat, page in (("xyxw", 2), ("zrjs", 2)):
     try:
-        client.get_articles(cat, 1, source="gjjrx") if cat == "xyxw" else client.get_people(cat, 1, source="gjjrx")
+        (client.get_articles if cat == "xyxw" else client.get_people)(cat, 1, source="gjjrx")
         if cat == "xyxw":
             result = client.get_articles(cat, page, source="gjjrx")
         else:
             result = client.get_people(cat, page, source="gjjrx")
         first = result.items[0]
-        print(f"P2 {cat}: n={len(result.items)} first={first.title if hasattr(first, 'title') else first.name!r} url={first.url}")
+        print(
+            f"P2 {cat}: n={len(result.items)} "
+            f"first={first.title if hasattr(first, 'title') else first.name!r} "
+            f"url={first.url}"
+        )
     except Exception as exc:
         print(f"P2 {cat}: ERROR {type(exc).__name__}: {exc}")
 
