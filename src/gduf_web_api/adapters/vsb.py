@@ -72,10 +72,13 @@ def _validate_page(page: int) -> None:
         raise InvalidPageError("page must be a positive integer")
 
 
+_ZERO_WIDTH_RE = re.compile(r"[\u200b\u200c\u200d\ufeff]")
+
+
 def _clean_text(value: str | None) -> str | None:
     if value is None:
         return None
-    cleaned = " ".join(value.replace("\u200b", "").split())
+    cleaned = " ".join(_ZERO_WIDTH_RE.sub("", value).split())
     return cleaned or None
 
 
@@ -312,6 +315,26 @@ def row_gjjrx(row: Tag, page_url: str, category: str | None) -> ArticleSummary |
         title=title,
         url=item_url,
         published_at=_parse_date(date_node.get_text(" ", strip=True) if date_node else None),
+        category=category,
+    )
+
+
+def row_jmx(row: Tag, page_url: str, category: str | None) -> ArticleSummary | None:
+    """``<li><span>date</span><a href><em>title</em></a></li>`` (jmx lists)."""
+
+    anchor = row.find("a", href=True)
+    if not isinstance(anchor, Tag):
+        return None
+    item_url = _absolute(page_url, str(anchor.get("href")))
+    em = anchor.find("em")
+    title = _clean_text(em.get_text(" ", strip=True) if em else anchor.get_text(" ", strip=True))
+    if not item_url or not title:
+        return None
+    date_span = row.find("span")
+    return ArticleSummary(
+        title=title,
+        url=item_url,
+        published_at=_parse_date(date_span.get_text(" ", strip=True) if date_span else None),
         category=category,
     )
 
@@ -919,3 +942,49 @@ class VsbAdapter:
             total_items,
             response_url,
         )
+
+
+# ---------------------------------------------------------------------------
+# Shared detail-template base.
+# ---------------------------------------------------------------------------
+
+#: "作者 X 时间 YYYY-MM-DD 点击数" meta line of the main_art theme
+_AUTHOR_TIME_RE = re.compile(r"作者[\uFF1A:]\s*(.*?)\s*时间[\uFF1A:]\s*(\d{4}-\d{2}-\d{2})")
+
+
+class MainArtVsbAdapter(VsbAdapter):
+    """VS Builder sites whose article detail pages use the ``main_contit``
+    title/meta block, a ``main_art`` previous/next list, and ``download.jsp``
+    attachment links (jmx, gsgl, xxgc, jrsx themes)."""
+
+    def _parse_meta(
+        self, soup: BeautifulSoup, page_url: str
+    ) -> tuple[date | None, str | None, int | None, str | None, str | None]:
+        published_at: date | None = None
+        attribution: str | None = None
+        meta = soup.select_one(".main_contit")
+        if meta is not None:
+            match = _AUTHOR_TIME_RE.search(meta.get_text(" ", strip=True))
+            if match:
+                attribution = _clean_text(match.group(1))
+                published_at = _parse_date(match.group(2))
+        previous_url: str | None = None
+        next_url: str | None = None
+        nav = soup.select_one(".main_art")
+        if nav is not None:
+            for item in nav.select("li"):
+                label = _clean_text(item.get_text(" ", strip=True)) or ""
+                anchor = item.find("a", href=True)
+                if not isinstance(anchor, Tag) or not label:
+                    continue
+                link = _absolute(page_url, str(anchor.get("href")))
+                if not link:
+                    continue
+                if label.startswith("上一篇"):
+                    previous_url = link
+                elif label.startswith("下一篇"):
+                    next_url = link
+        return published_at, attribution, None, previous_url, next_url
+
+    def _extra_attachments(self, soup: BeautifulSoup, page_url: str) -> tuple[str, ...]:
+        return _download_attachments(soup, page_url)

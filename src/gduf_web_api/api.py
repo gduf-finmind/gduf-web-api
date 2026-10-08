@@ -612,6 +612,74 @@ def get_gjjrx_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="gjjrx"))
 
 
+def get_jmx_xwgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 新闻公告 (college news and notices)."""
+
+    return _using(client, lambda active: active.get_articles("xwgg", page, source="jmx"))
+
+
+def get_jmx_djhd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 党建活动 (party building activities)."""
+
+    return _using(client, lambda active: active.get_articles("djhd", page, source="jmx"))
+
+
+def get_jmx_jxhd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 教学活动 (teaching activities)."""
+
+    return _using(client, lambda active: active.get_articles("jxhd", page, source="jmx"))
+
+
+def get_jmx_kyhd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 科研活动 (research activities)."""
+
+    return _using(client, lambda active: active.get_articles("kyhd", page, source="jmx"))
+
+
+def get_jmx_ssfc(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 硕士风采 (master's program showcase)."""
+
+    return _using(client, lambda active: active.get_articles("ssfc", page, source="jmx"))
+
+
+def get_jmx_xyjj(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 学院概况 column articles (college profile and recruitment)."""
+
+    return _using(client, lambda active: active.get_articles("xyjj", page, source="jmx"))
+
+
+def get_jmx_szdw(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 师资队伍 column articles (faculty group photos)."""
+
+    return _using(client, lambda active: active.get_articles("szdw", page, source="jmx"))
+
+
+def _jmx_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="jmx"))
+
+
+def get_jmx_jgsz(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 机构设置 (organizational structure)."""
+
+    return _jmx_content("jgsz", client)
+
+
+def get_jmx_xrld(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 现任领导 (current leadership)."""
+
+    return _jmx_content("xrld", client)
+
+
+def get_jmx_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one jmx article detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="jmx"))
+
+
 def get_xygl_zxzx(
     page: int = 1, *, client: GdufClient | None = None
 ) -> PageResult[ArticleSummary]:

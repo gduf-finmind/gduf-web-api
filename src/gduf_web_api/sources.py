@@ -40,7 +40,7 @@ SOURCES: tuple[SourceInfo, ...] = (
     SourceInfo("jrx", "金融与投资学院", "https://jrx.gduf.edu.cn/", "available"),
     SourceInfo("kjx", "会计学院", "https://kjx.gduf.edu.cn/", "available"),
     SourceInfo("bxx", "保险学院", "https://bxx.gduf.edu.cn/", "available"),
-    SourceInfo("jmxy", "经济贸易学院", "https://jmxy.gduf.edu.cn/", "unavailable", TLS_NOTE),
+    SourceInfo("jmx", "经济贸易学院", "https://jmx.gduf.edu.cn/", "available"),
     SourceInfo("xygl", "信用管理学院", "https://xygl.gduf.edu.cn/", "available"),
     SourceInfo("gsxy", "工商管理学院", "https://gsxy.gduf.edu.cn/", "unavailable", TLS_NOTE),
     SourceInfo(

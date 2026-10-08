@@ -18,7 +18,7 @@
 | `xygl` | 信用管理学院 | https://xygl.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `wyx` | 外国语言与文化学院 | https://wyx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `cjcm` | 财经与新媒体学院 | https://cjcm.gduf.edu.cn/ | ✅ 可用 | 已接入 |
-| `jmxy` | 经济贸易学院 | https://jmxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `jmx` | 经济贸易学院 | https://jmx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `gsxy` | 工商管理学院 | https://gsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `jrsxy` | 金融数学与统计学院 | https://jrsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `gjjrx` | 国家金融学学院 | https://gjjrx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
@@ -240,7 +240,7 @@ for phase in detail.timeline:
 
 各来源的补充约定：
 
-- 站内搜索只有 `search_ai`、`search_jrx`、`search_main` 三站可用；其余来源不支持搜索，调用 `client.search(..., source=...)` 会抛出 `ParseError`。
+- 站内搜索只有 `search_ai`、`search_jrx`、`search_main`、`search_gjjrx` 四站可用；其余来源不支持搜索，调用 `client.search(..., source=...)` 会抛出 `ParseError`。
 - 列表与人员函数统一接收从 1 开始的 `page`；超出栏目总页数抛出 `InvalidPageError`。
 - `get_*_detail` 接受列表结果对象、站内相对 URL 或对应来源域名的绝对 URL；部分栏目（如 `cjcm` 的学院新闻）会链接到微信公众号等站外文章，这类链接无法作为详情抓取，直接传入会抛出 `ValueError`。
 - `cjcm` 详情的上一篇/下一篇指向站外微信文章时，仅作为 URL 返回，不会发起请求。
