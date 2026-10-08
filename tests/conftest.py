@@ -180,6 +180,38 @@ def cjcm_site_response(request: httpx.Request, path: str) -> httpx.Response:
     return httpx.Response(404, request=request)
 
 
+def gjjrx_site_response(request: httpx.Request, path: str) -> httpx.Response:
+    if path == "/search.jsp":
+        if request.method == "POST":
+            return html_response("gjjrx_search_p1.html", request)
+        current = request.url.params.get("currentnum")
+        return html_response(
+            "gjjrx_search_p2.html" if current == "2" else "gjjrx_search_p1.html", request
+        )
+    pages = {
+        "/xwzx/xyxw.htm": "gjjrx_xyxw.html",
+        "/xwzx/xyxw/10.htm": "gjjrx_xyxw_p2.html",
+        "/xwzx/tzgg.htm": "gjjrx_tzgg.html",
+        "/xwzx/jxky.htm": "gjjrx_jxky.html",
+        "/xwzx/dtxg.htm": "gjjrx_dtxg.html",
+        "/xwzx/gjzk.htm": "gjjrx_gjzk.html",
+        "/szdw/zrjs.htm": "gjjrx_zrjs.html",
+        "/szdw/zrjs/2.htm": "gjjrx_zrjs_p2.html",
+        "/szdw/jfry.htm": "gjjrx_jfry.html",
+        "/szdw/bsfc.htm": "gjjrx_bsfc.html",
+        "/szdw/jsfc.htm": "gjjrx_jsfc.html",
+        "/xygk/xyld.htm": "gjjrx_xrld.html",
+        "/xygk/xyjj.htm": "gjjrx_xyjj.html",
+        "/xygk/jgsz.htm": "gjjrx_jgsz.html",
+        "/szdw/szgk.htm": "gjjrx_szgk.html",
+    }
+    if path in pages:
+        return html_response(pages[path], request)
+    if path.startswith("/info/"):
+        return html_response("gjjrx_detail.html", request)
+    return httpx.Response(404, request=request)
+
+
 def ai_site_response(
     request: httpx.Request,
     path: str,
@@ -259,6 +291,8 @@ def transport(request_log: list[httpx.Request]) -> httpx.MockTransport:
             return wyx_site_response(request, path)
         if request.url.host == "cjcm.gduf.edu.cn":
             return cjcm_site_response(request, path)
+        if request.url.host == "gjjrx.gduf.edu.cn":
+            return gjjrx_site_response(request, path)
         if request.url.host == "ai-data-competitions.cn":
             return aijspt_response(request, path)
         if request.url.host == "ai.gduf.edu.cn":

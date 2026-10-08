@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import base64
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import date
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlparse
@@ -296,6 +296,26 @@ def row_trailing_date(row: Tag, page_url: str, category: str | None) -> ArticleS
     )
 
 
+def row_gjjrx(row: Tag, page_url: str, category: str | None) -> ArticleSummary | None:
+    """``<li><b class="fr">date</b><a href [title]>title</a></li>`` (gjjrx lists
+    and search results)."""
+
+    anchor = row.find("a", href=True)
+    if not isinstance(anchor, Tag):
+        return None
+    item_url = _absolute(page_url, str(anchor.get("href")))
+    title = _clean_text(str(anchor.get("title") or anchor.get_text(" ", strip=True)))
+    if not item_url or not title:
+        return None
+    date_node = row.find("b")
+    return ArticleSummary(
+        title=title,
+        url=item_url,
+        published_at=_parse_date(date_node.get_text(" ", strip=True) if date_node else None),
+        category=category,
+    )
+
+
 # ---------------------------------------------------------------------------
 # People row parsers.
 # ---------------------------------------------------------------------------
@@ -473,6 +493,85 @@ def people_cjcm_photo(row: Tag, page_url: str) -> PersonSummary | None:
     )
 
 
+_DEPT_NAME_RE = re.compile(r"^(\S+?)[\u2014\u2013\-]\s*")
+
+
+def people_dept_name(row: Tag, page_url: str) -> PersonSummary | None:
+    """Photo cards whose display text reads "部门—姓名" (gjjrx support staff)."""
+
+    anchor = row.find("a", href=True)
+    if not isinstance(anchor, Tag):
+        return None
+    url = _absolute(page_url, str(anchor.get("href")))
+    info = anchor.select_one(".info")
+    display_name = _clean_text(
+        info.get_text(" ", strip=True) if info else str(anchor.get("title") or "")
+    )
+    if not url or not display_name:
+        return None
+    name = display_name
+    role: str | None = None
+    split = _DEPT_NAME_RE.match(display_name)
+    if split:
+        role = split.group(1)
+        name = _clean_name(display_name[split.end() :]) or name
+    image = anchor.select_one(".pic img")
+    return PersonSummary(
+        name=name,
+        url=url,
+        role=role,
+        image_url=_absolute(page_url, str(image.get("src"))) if isinstance(image, Tag) else None,
+    )
+
+
+def people_gjjrx_leader(row: Tag, page_url: str) -> PersonSummary | None:
+    """gjjrx leader cards: photo link plus a 姓名/职务 two-row table."""
+
+    anchor = row.select_one(".leader_image a[href]")
+    if not isinstance(anchor, Tag):
+        return None
+    url = _absolute(page_url, str(anchor.get("href")))
+    if not url:
+        return None
+    name: str | None = None
+    role: str | None = None
+    for cell in row.select(".leader_info td"):
+        label_node = cell.find("b")
+        value_node = cell.find("span")
+        label = _clean_text(label_node.get_text(" ", strip=True)) if label_node else ""
+        value = (
+            _clean_text(value_node.get_text(" ", strip=True))
+            if isinstance(value_node, Tag)
+            else None
+        )
+        if not value:
+            continue
+        if label == "姓名":
+            name = _clean_name(value)
+        elif label == "职务":
+            role = value
+    if not name:
+        return None
+    image = row.select_one(".leader_image img")
+    return PersonSummary(
+        name=name,
+        url=url,
+        role=role,
+        image_url=_absolute(page_url, str(image.get("src"))) if isinstance(image, Tag) else None,
+    )
+
+
+def _download_attachments(soup: BeautifulSoup, page_url: str) -> tuple[str, ...]:
+    """Collect ``download.jsp`` attachment links that carry no file extension."""
+
+    found: list[str] = []
+    for anchor in soup.select('a[href*="download.jsp"]'):
+        link = _absolute(page_url, str(anchor.get("href")))
+        if link and link not in found:
+            found.append(link)
+    return tuple(found)
+
+
 # ---------------------------------------------------------------------------
 # Adapter base.
 # ---------------------------------------------------------------------------
@@ -485,7 +584,8 @@ class VsbAdapter:
 
     #: selector for article list rows
     article_row_selector = "li[id^='line_']"
-    #: selector for people list rows (defaults to the article rows)
+    #: selector for people list rows (defaults to the article rows); a concrete
+    #: adapter may override it per category via the constructor
     people_row_selector = "li[id^='line_']"
     #: search result rows; None disables search
     search_row_selector: str | None = None
@@ -499,7 +599,8 @@ class VsbAdapter:
         article_paths: dict[str, str],
         article_row_parser: RowParser,
         people_paths: dict[str, str] | None = None,
-        people_row_parser: PeopleRowParser | None = None,
+        people_row_parser: PeopleRowParser | Mapping[str, PeopleRowParser] | None = None,
+        people_row_selector: str | Mapping[str, str] | None = None,
         content_paths: dict[str, str] | None = None,
     ) -> None:
         self._client = client
@@ -508,7 +609,12 @@ class VsbAdapter:
         self._article_paths = article_paths
         self._article_row_parser = article_row_parser
         self._people_paths = people_paths or {}
-        self._people_row_parser = people_row_parser
+        self._people_row_parser: PeopleRowParser | Mapping[str, PeopleRowParser] | None = (
+            people_row_parser
+        )
+        self._people_row_selector: str | Mapping[str, str] = (
+            people_row_selector if people_row_selector is not None else self.people_row_selector
+        )
         self._content_paths = content_paths or {}
         self._page_meta: dict[str, tuple[int, int]] = {}
         self._first_page: dict[str, tuple[BeautifulSoup, str]] = {}
@@ -581,8 +687,23 @@ class VsbAdapter:
             total_items, total_pages = cached_total, cached_pages
         return PageResult(_dedupe_articles(items), page, total_pages, total_items, response_url)
 
+    def _people_row_config(self, category: str) -> tuple[str, PeopleRowParser | None]:
+        """Resolve the row selector and parser for one people category."""
+
+        selector = self._people_row_selector
+        parser = self._people_row_parser
+        if isinstance(selector, Mapping) and category not in selector:
+            raise ParseError(f"unknown {self.code} people category: {category!r}")
+        if isinstance(parser, Mapping) and category not in parser:
+            raise ParseError(f"unknown {self.code} people category: {category!r}")
+        return (
+            selector[category] if isinstance(selector, Mapping) else selector,
+            parser[category] if isinstance(parser, Mapping) else parser,
+        )
+
     def get_people(self, category: str, page: int = 1) -> PageResult[PersonSummary]:
-        if self._people_row_parser is None:
+        selector, row_parser = self._people_row_config(category)
+        if row_parser is None:
             raise ParseError(f"{self.code} has no people list support")
         try:
             path = self._people_paths[category]
@@ -593,10 +714,7 @@ class VsbAdapter:
         )
         items = [
             item
-            for item in (
-                self._people_row_parser(row, response_url)
-                for row in soup.select(self.people_row_selector)
-            )
+            for item in (row_parser(row, response_url) for row in soup.select(selector))
             if item is not None
         ]
         if not items:

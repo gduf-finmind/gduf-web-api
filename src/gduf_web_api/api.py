@@ -502,6 +502,116 @@ def get_cjcm_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="cjcm"))
 
 
+def get_gjjrx_xyxw(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 学院新闻 (college news)."""
+
+    return _using(client, lambda active: active.get_articles("xyxw", page, source="gjjrx"))
+
+
+def get_gjjrx_tzgg(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 通知公告 (notices and announcements)."""
+
+    return _using(client, lambda active: active.get_articles("tzgg", page, source="gjjrx"))
+
+
+def get_gjjrx_jxky(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 教学科研 (teaching and research news)."""
+
+    return _using(client, lambda active: active.get_articles("jxky", page, source="gjjrx"))
+
+
+def get_gjjrx_dtxg(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 党团学工 (party, league and student affairs news)."""
+
+    return _using(client, lambda active: active.get_articles("dtxg", page, source="gjjrx"))
+
+
+def get_gjjrx_gjzk(
+    page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Get 国金智库 (think tank articles)."""
+
+    return _using(client, lambda active: active.get_articles("gjzk", page, source="gjjrx"))
+
+
+def get_gjjrx_xrld(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 学院领导 (college leadership)."""
+
+    return _using(client, lambda active: active.get_people("xrld", page, source="gjjrx"))
+
+
+def get_gjjrx_zrjs(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 专任教师 (full-time teaching staff)."""
+
+    return _using(client, lambda active: active.get_people("zrjs", page, source="gjjrx"))
+
+
+def get_gjjrx_jfry(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教辅人员 (teaching support staff)."""
+
+    return _using(client, lambda active: active.get_people("jfry", page, source="gjjrx"))
+
+
+def get_gjjrx_bsfc(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 博士风采 (faculty with doctoral degrees)."""
+
+    return _using(client, lambda active: active.get_people("bsfc", page, source="gjjrx"))
+
+
+def get_gjjrx_jsfc(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教授风采 (professors)."""
+
+    return _using(client, lambda active: active.get_people("jsfc", page, source="gjjrx"))
+
+
+def _gjjrx_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="gjjrx"))
+
+
+def get_gjjrx_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _gjjrx_content("xyjj", client)
+
+
+def get_gjjrx_jgsz(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 机构设置 (organizational structure)."""
+
+    return _gjjrx_content("jgsz", client)
+
+
+def get_gjjrx_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 师资概况 (faculty overview)."""
+
+    return _gjjrx_content("szgk", client)
+
+
+def search_gjjrx(
+    keyword: str, page: int = 1, *, client: GdufClient | None = None
+) -> PageResult[ArticleSummary]:
+    """Search the national finance school website."""
+
+    return _using(client, lambda active: active.search(keyword, page, source="gjjrx"))
+
+
+def get_gjjrx_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one gjjrx article or staff profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="gjjrx"))
+
+
 def get_xygl_zxzx(
     page: int = 1, *, client: GdufClient | None = None
 ) -> PageResult[ArticleSummary]:
