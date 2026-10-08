@@ -409,6 +409,44 @@ def people_kjx_card(row: Tag, page_url: str) -> PersonSummary | None:
     )
 
 
+def people_xxgc_card(row: Tag, page_url: str) -> PersonSummary | None:
+    """xxgc teacher cards: photo + ``h3`` name + 教师简介 bio + 详细 link."""
+
+    right = row.select_one(".main_rpicR")
+    if right is None:
+        return None
+    h3 = right.find("h3")
+    name = _clean_name(h3.get_text(" ", strip=True)) if h3 else None
+    if not name:
+        return None
+    detail_link = next(
+        (
+            a
+            for a in right.find_all("a", href=True)
+            if _clean_text(a.get_text(" ", strip=True)) == "详细"
+        ),
+        None,
+    )
+    if not isinstance(detail_link, Tag):
+        return None
+    url = _absolute(page_url, str(detail_link.get("href")))
+    if not url:
+        return None
+    bio_para = right.find("p")
+    summary = _clean_text(bio_para.get_text(" ", strip=True)) if bio_para is not None else None
+    if summary:
+        summary = re.sub(r"^教师简介", "", summary)
+        summary = re.sub(r"\s*\[\s*详细\s*\]\s*$", "", summary) or None
+    left = row.select_one(".main_rpicL")
+    image = left.find("img") if left else row.find("img")
+    return PersonSummary(
+        name=name,
+        url=url,
+        responsibility=summary,
+        image_url=_absolute(page_url, str(image.get("src"))) if isinstance(image, Tag) else None,
+    )
+
+
 def people_bxx_name(row: Tag, page_url: str) -> PersonSummary | None:
     """``<li><a title="姓名 职务">姓名 职务</a></li>``; role optional."""
 

@@ -23,7 +23,7 @@
 | `jrsxy` | 金融数学与统计学院 | https://jrsxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `gjjrx` | 国家金融学学院 | https://gjjrx.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `dsai` | 大数据与人工智能学院（dsai 域名） | https://dsai.gduf.edu.cn/ | ❌ 不可用 | 新域名 TLS 握手失败；同院内容仍可由 `ai` 来源获取 |
-| `jsjxy` | 计算机学院 | https://jsjxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
+| `xxgc` | 计算机学院 | https://xxgc.gduf.edu.cn/ | ✅ 可用 | 已接入 |
 | `fx` | 法学院 | https://fx.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `ggglxy` | 公共管理学院 | https://ggglxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |
 | `mkszyxy` | 马克思主义学院 | https://mkszyxy.gduf.edu.cn/ | ❌ 不可用 | TLS 握手失败（SSL: UNEXPECTED_EOF_WHILE_READING） |

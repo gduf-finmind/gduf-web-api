@@ -54,7 +54,7 @@ SOURCES: tuple[SourceInfo, ...] = (
         "unavailable",
         DSAI_NOTE,
     ),
-    SourceInfo("jsjxy", "计算机学院", "https://jsjxy.gduf.edu.cn/", "unavailable", TLS_NOTE),
+    SourceInfo("xxgc", "计算机学院", "https://xxgc.gduf.edu.cn/", "available"),
     SourceInfo("fx", "法学院", "https://fx.gduf.edu.cn/", "unavailable", TLS_NOTE),
     SourceInfo("ggglxy", "公共管理学院", "https://ggglxy.gduf.edu.cn/", "unavailable", TLS_NOTE),
     SourceInfo("wyx", "外国语言与文化学院", "https://wyx.gduf.edu.cn/", "available"),

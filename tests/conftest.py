@@ -254,6 +254,25 @@ def gsgl_site_response(request: httpx.Request, path: str) -> httpx.Response:
     return httpx.Response(404, request=request)
 
 
+def xxgc_site_response(request: httpx.Request, path: str) -> httpx.Response:
+    pages = {
+        "/index/xyxw.htm": "xxgc_xyxw.html",
+        "/index/xyxw/21.htm": "xxgc_xyxw_p2.html",
+        "/tzgg.htm": "xxgc_tzgg.html",
+        "/index/jxhd.htm": "xxgc_jxhd.html",
+        "/szdw/jsml.htm": "xxgc_jsml.html",
+        "/szdw/jfry.htm": "xxgc_jfry.html",
+        "/szdw/szgk.htm": "xxgc_szgk.html",
+        "/xygk/xyjj.htm": "xxgc_xyjj.html",
+        "/xygk/ldjs.htm": "xxgc_ldjs.html",
+    }
+    if path in pages:
+        return html_response(pages[path], request)
+    if path.startswith("/info/"):
+        return html_response("xxgc_detail.html", request)
+    return httpx.Response(404, request=request)
+
+
 def ai_site_response(
     request: httpx.Request,
     path: str,
@@ -339,6 +358,8 @@ def transport(request_log: list[httpx.Request]) -> httpx.MockTransport:
             return jmx_site_response(request, path)
         if request.url.host == "gsgl.gduf.edu.cn":
             return gsgl_site_response(request, path)
+        if request.url.host == "xxgc.gduf.edu.cn":
+            return xxgc_site_response(request, path)
         if request.url.host == "ai-data-competitions.cn":
             return aijspt_response(request, path)
         if request.url.host == "ai.gduf.edu.cn":

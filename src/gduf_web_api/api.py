@@ -760,6 +760,68 @@ def get_gsgl_detail(
     return _using(client, lambda active: active.get_detail(item_or_url, source="gsgl"))
 
 
+def get_xxgc_xyxw(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 学院新闻 (college news)."""
+
+    return _using(client, lambda active: active.get_articles("xyxw", page, source="xxgc"))
+
+
+def get_xxgc_tzgg(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 通知公告 (notices and announcements)."""
+
+    return _using(client, lambda active: active.get_articles("tzgg", page, source="xxgc"))
+
+
+def get_xxgc_jxhd(page: int = 1, *, client: GdufClient | None = None) -> PageResult[ArticleSummary]:
+    """Get 教学活动 (teaching activities)."""
+
+    return _using(client, lambda active: active.get_articles("jxhd", page, source="xxgc"))
+
+
+def get_xxgc_jsml(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教师名录 (teacher roster)."""
+
+    return _using(client, lambda active: active.get_people("jsml", page, source="xxgc"))
+
+
+def get_xxgc_jfry(page: int = 1, *, client: GdufClient | None = None) -> PageResult[PersonSummary]:
+    """Get 教辅人员 (teaching support staff)."""
+
+    return _using(client, lambda active: active.get_people("jfry", page, source="xxgc"))
+
+
+def _xxgc_content(category: str, client: GdufClient | None) -> ContentDetail:
+    return _using(client, lambda active: active.get_content(category, source="xxgc"))
+
+
+def get_xxgc_xyjj(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 学院简介 (college profile)."""
+
+    return _xxgc_content("xyjj", client)
+
+
+def get_xxgc_ldjs(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 领导介绍 (leadership)."""
+
+    return _xxgc_content("ldjs", client)
+
+
+def get_xxgc_szgk(*, client: GdufClient | None = None) -> ContentDetail:
+    """Get 师资概况 (faculty overview)."""
+
+    return _xxgc_content("szgk", client)
+
+
+def get_xxgc_detail(
+    item_or_url: ArticleSummary | PersonSummary | str,
+    *,
+    client: GdufClient | None = None,
+) -> ContentDetail:
+    """Get one xxgc article or staff profile detail."""
+
+    return _using(client, lambda active: active.get_detail(item_or_url, source="xxgc"))
+
+
 def get_xygl_zxzx(
     page: int = 1, *, client: GdufClient | None = None
 ) -> PageResult[ArticleSummary]:
