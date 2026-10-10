@@ -1,29 +1,36 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import json
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import httpx
 import pytest
+from bs4 import BeautifulSoup
 
 import gduf_web_api as api
-from gduf_web_api import GdufClient, NetworkError, UnsupportedSourceError
+from gduf_web_api import GdufClient, NetworkError, ParseError, UnsupportedSourceError
+from gduf_web_api.adapters import aijspt
 
 
 def test_competition_list_parses_all_snapshot_items(client: GdufClient) -> None:
     result = client.get_competitions()
 
     assert result.total_items == 14
-    assert result.source_url == "https://ai-data-competitions.cn/api/competitions"
+    assert result.source_url == "https://ai-data-competitions.cn/competitions"
     first = result.items[0]
     assert first.title == "全国大学生机器人大赛-①RoboMaster"
     assert first.registration_start_at is None
     assert first.official_url == "https://www.robomaster.com/zh-CN"
 
     upcoming = result.items[1]
-    assert upcoming.registration_start_at == datetime(2026, 11, 3, 21, 49, tzinfo=timezone.utc)
-    assert upcoming.to_dict()["registration_start_at"] == "2026-11-03T21:49:00+00:00"
+    assert upcoming.registration_start_at == datetime(
+        2026, 11, 4, 5, 49, tzinfo=timezone(timedelta(hours=8))
+    )
+    assert upcoming.to_dict()["registration_start_at"] == "2026-11-04T05:49:00+08:00"
     assert upcoming.registration_mode == "team"
-    assert upcoming.max_team_size == 5
+    assert upcoming.max_team_size is None
+    assert upcoming.max_advisors is None
 
 
 def test_competition_filters_are_combined_and_keep_order(client: GdufClient) -> None:
@@ -96,7 +103,7 @@ def test_notices_and_limit_validation(client: GdufClient, request_log: list[http
     result = client.get_notices(7)
 
     assert result.total_items == 1
-    assert request_log[-1].url.params["limit"] == "7"
+    assert request_log[-1].url.path == "/notifications"
     notice = result.items[0]
     assert notice.competition_id is None
     assert notice.delivery_scope == "global"
@@ -127,7 +134,7 @@ def test_club_list_includes_nextjs_streamed_cards_outside_overview() -> None:
     def card(slug: str, name: str) -> str:
         return (
             f'<article><span data-slot="badge">{name}</span><h3>{name}</h3>'
-            f'<p>{name} slogan</p><p>{name} club</p>'
+            f"<p>{name} slogan</p><p>{name} club</p>"
             f'<a href="/clubs/{slug}">View</a></article>'
         )
 
@@ -168,3 +175,100 @@ def test_aijspt_public_helpers_reuse_client(client: GdufClient) -> None:
     assert api.get_aijspt_bsxq(competitions.items[0], client=client).timeline
     assert api.get_aijspt_tzgg(limit=1, client=client).items
     assert api.get_aijspt_stlb(client=client).items
+
+
+def test_streamed_competitions_years_pagination_and_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    """模拟卡片页脚分段、不同年份和下一页,验证去重与缓存到期重新请求。
+
+    所有请求必须使用公开网页,旧 JSON 接口和页面内的外域链接均不可访问。
+    """
+    html = (Path(__file__).parent / "fixtures/aijspt_competitions.html").read_text(encoding="utf-8")
+    soup = BeautifulSoup(html, "html.parser")
+    cards = soup.select("[data-slot='card']")
+    duplicate = str(cards[0])
+    footer = cards[0].select_one("[data-slot='card-footer']")
+    footer_html = str(footer)
+    footer.replace_with(BeautifulSoup('<template id="P:2"></template>', "html.parser"))
+    first = (
+        "<h1>比赛列表</h1>"
+        + str(cards[0])
+        + '<div hidden id="S:2">'
+        + footer_html
+        + '</div><script>$RS("S:2","P:2")</script>'
+    )
+    first += '<a href="/competitions?year=2025">2025</a><a href="/competitions?page=2">下一页</a><a href="https://example.com/competitions?page=2">外链</a>'
+    older = str(cards[1]).replace("2026 年", "2025 年")
+    paths: list[str] = []
+    now = [100.0]
+    monkeypatch.setattr(aijspt, "monotonic", lambda: now[0])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        """返回三页公开数据并记录请求,重复第一页比赛用于检查去重行为。"""
+        assert request.url.host == "ai-data-competitions.cn"
+        assert request.url.path == "/competitions"
+        paths.append(str(request.url))
+        body = (
+            "<h1>比赛列表</h1>" + older
+            if request.url.params.get("year")
+            else "<h1>比赛列表</h1>" + duplicate + str(cards[2])
+            if request.url.params.get("page")
+            else first
+        )
+        return httpx.Response(200, text=body)
+
+    with GdufClient(transport=httpx.MockTransport(handler), retries=0) as client:
+        result = client.get_competitions()
+        assert result.total_items == 3
+        assert result.items[0].title == "全国大学生机器人大赛-①RoboMaster"
+        assert client.get_competitions(year=2025).total_items == 1
+        assert len(paths) == 3
+        now[0] += 301
+        assert client.get_competitions().total_items == 3
+        assert len(paths) == 6
+
+
+def test_notices_split_rsc_preserves_full_text_and_limit() -> None:
+    """把通知 JSON 从正文中间分成两个脚本,验证转义字符、全文和本地限额。
+
+    空数组是正常空态,没有有效 RSC 数组的页面必须抛出解析错误。
+    """
+    payload = json.loads(
+        (Path(__file__).parent / "fixtures/aijspt_notices.json").read_text(encoding="utf-8")
+    )
+    notice = payload["notices"][0]
+    notice["content"] = '完整正文"引号"\n' * 100
+    payload["notices"] = [notice, {**notice, "id": "second"}]
+    stream = "0:" + json.dumps(payload, ensure_ascii=False) + "\n"
+    middle = stream.index("完整正文") + 3
+    html = "".join(
+        "<script>self.__next_f.push(" + json.dumps([1, chunk], ensure_ascii=False) + ")</script>"
+        for chunk in (stream[:middle], stream[middle:])
+    )
+    with GdufClient(
+        transport=httpx.MockTransport(lambda request: httpx.Response(200, text=html)), retries=0
+    ) as client:
+        result = client.get_notices(1)
+        assert result.total_items == 1
+        assert result.items[0].content == notice["content"].strip()
+    assert (
+        aijspt.AijsptAdapter._notice_payload(
+            BeautifulSoup(
+                '<script>self.__next_f.push([1,"0:{\\"notices\\":[]}\\n"])</script>', "html.parser"
+            )
+        )
+        == []
+    )
+    with pytest.raises(ParseError, match="missing notices"):
+        aijspt.AijsptAdapter._notice_payload(BeautifulSoup("<h1>登录</h1>", "html.parser"))
+
+
+def test_invalid_competition_page_is_not_cached() -> None:
+    """异常页不可以变成成功空列表,上游恢复后同一客户端应能重新加载。"""
+    responses = iter(["<h1>比赛列表</h1>", "<h1>比赛列表</h1><p>暂无比赛</p>"])
+    with GdufClient(
+        transport=httpx.MockTransport(lambda request: httpx.Response(200, text=next(responses))),
+        retries=0,
+    ) as client:
+        with pytest.raises(ParseError, match="no recognizable cards"):
+            client.get_competitions()
+        assert client.get_competitions().total_items == 0

@@ -140,7 +140,7 @@ print(json.dumps(major.to_dict(), ensure_ascii=False))
 
 `get_aijspt_bslb` 的多个筛选参数使用 AND 关系，即返回同时满足所有已传条件的比赛，并保持平台原始排序。`None` 表示不启用对应筛选。
 
-竞赛状态使用平台原始值，包括 `registration_open`（报名中）、`previous_recording`（往期比赛补录中）、`upcoming`（即将开始）、`in_progress`（进行中）和 `finished`（已结束）。平台时间解析为带时区的 `datetime`，列表接口无分页，返回 `ListResult`。
+竞赛状态使用平台原始值，包括 `registration_open`（报名中）、`previous_recording`（往期比赛补录中）、`upcoming`（即将开始）、`in_progress`（进行中）和 `finished`（已结束）。客户端读取 `/competitions` 的服务端卡片，遍历公开年份及分页并去重后返回 `ListResult`，成功列表缓存五分钟。报名时间按页面显示的北京时间解析为带时区、分钟精度的 `datetime`；页面未公开的人数上限与其他时间返回 `None`。通知读取 `/notifications` 的内嵌 RSC 数据，保留正文换行并在本地应用 `limit`。旧 `/api/competitions` 与 `/api/notices/published` 已返回 404，不再调用。
 
 ```python
 from gduf_web_api import get_aijspt_bslb, get_aijspt_bsxq

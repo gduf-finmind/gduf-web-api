@@ -320,20 +320,10 @@ def ai_site_response(
 
 
 def aijspt_response(request: httpx.Request, path: str) -> httpx.Response:
-    if path == "/api/competitions":
-        return httpx.Response(
-            200,
-            text=fixture_text("aijspt_competitions.json"),
-            headers={"content-type": "application/json"},
-            request=request,
-        )
-    if path == "/api/notices/published":
-        return httpx.Response(
-            200,
-            text=fixture_text("aijspt_notices.json"),
-            headers={"content-type": "application/json"},
-            request=request,
-        )
+    if path == "/competitions":
+        return html_response("aijspt_competitions.html", request)
+    if path == "/notifications":
+        return html_response("aijspt_notifications.html", request)
     if path == "/clubs":
         return html_response("aijspt_clubs.html", request)
     if path == "/competitions/3c3f766f-684f-46cb-b265-a686a9f3738b":

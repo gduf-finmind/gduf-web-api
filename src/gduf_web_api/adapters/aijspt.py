@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from time import monotonic
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qs, urljoin, urlparse
 from uuid import UUID
 
 from bs4 import BeautifulSoup, Tag
@@ -59,12 +60,6 @@ def _optional_text(value: Any, field: str) -> str | None:
     return _clean_text(value)
 
 
-def _required_int(value: Any, field: str) -> int:
-    if isinstance(value, bool) or not isinstance(value, int):
-        raise ParseError(f"aijspt field {field!r} must be an integer")
-    return value
-
-
 def _parse_datetime(value: Any, field: str, *, required: bool = False) -> datetime | None:
     if value is None and not required:
         return None
@@ -91,71 +86,219 @@ def _positive_int(value: int, name: str) -> None:
 
 
 class AijsptAdapter:
-    """Read public JSON endpoints and server-rendered pages from AIJSPT."""
+    """读取竞赛平台公开服务端页面,为后端提供结构化比赛、通知和社团数据。"""
 
     code = "aijspt"
 
     def __init__(self, client: GdufClient) -> None:
         self._client = client
         self._competition_cache: tuple[tuple[CompetitionSummary, ...], str] | None = None
-
-    def _json_object(
-        self, url: str, *, params: dict[str, str | int] | None = None
-    ) -> tuple[dict[str, Any], str]:
-        text, response_url = self._client._request_text("GET", url, params=params)
-        try:
-            value = json.loads(text)
-        except json.JSONDecodeError as exc:
-            raise ParseError(f"invalid JSON returned by {response_url}") from exc
-        if not isinstance(value, dict):
-            raise ParseError(f"JSON returned by {response_url} must be an object")
-        return value, response_url
+        self._competition_cached_at = 0.0
 
     @staticmethod
-    def _parse_competition(value: Any) -> CompetitionSummary:
-        if not isinstance(value, dict):
-            raise ParseError("aijspt competition entry must be an object")
-        competition_id = _required_text(value.get("id"), "id")
-        try:
-            UUID(competition_id)
-        except ValueError as exc:
-            raise ParseError(f"invalid aijspt competition id: {competition_id!r}") from exc
+    def _page_soup(html: str) -> BeautifulSoup:
+        """将服务端分段 HTML 拼回占位位置,返回可查询的页面树。
+
+        只读取 Next.js 的片段搬运参数,不执行网页脚本;否则卡片页脚会与标题分离。
+        """
+        soup = BeautifulSoup(html, "html.parser")
+        for script in soup.find_all("script"):
+            for source_id, target_id in re.findall(
+                r'\$RS\("(S:[\w]+)","(P:[\w]+)"\)', script.get_text()
+            ):
+                source = soup.find(id=source_id)
+                target = soup.find(id=target_id)
+                if isinstance(source, Tag) and isinstance(target, Tag):
+                    for child in list(source.contents):
+                        target.insert_before(child.extract())
+                    target.decompose()
+                    source.decompose()
+        return soup
+
+    @staticmethod
+    def _notice_payload(soup: BeautifulSoup) -> list[Any]:
+        """读取公开页面内嵌的通知数组,保留正文和关联赛事字段。
+
+        合并分段 RSC 字符串后按 JSON 解码,避免跨片段、转义引号或换行截断正文。
+        缺少数据时报告解析错误,不能把登录页或异常页误判成空列表。
+        """
+        chunks: list[str] = []
+        decoder = json.JSONDecoder()
+        for script in soup.find_all("script"):
+            text = script.get_text().strip()
+            prefix = "self.__next_f.push("
+            if not text.startswith(prefix):
+                continue
+            try:
+                value, _ = decoder.raw_decode(text[len(prefix) :])
+            except json.JSONDecodeError:
+                continue
+            if (
+                isinstance(value, list)
+                and len(value) == 2
+                and value[0] == 1
+                and isinstance(value[1], str)
+            ):
+                chunks.append(value[1])
+        stream = "".join(chunks)
+        for match in re.finditer(r'"notices"\s*:\s*', stream):
+            try:
+                value, _ = decoder.raw_decode(stream[match.end() :])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(value, list):
+                return value
+        raise ParseError("aijspt public page is missing notices data")
+
+    @staticmethod
+    def _parse_card(card: Tag, competition_id: str) -> CompetitionSummary:
+        """从公开比赛卡片提取展示字段,转换为客户端既有的比赛模型。
+
+        页面日期采用北京时间;没有公开的限额与时间保持空值,避免伪造报名条件。
+        """
+        heading = card.select_one("[data-slot='card-title']")
+        header = card.select_one("[data-slot='card-header']")
+        content = card.select_one("[data-slot='card-content']")
+        footer = card.select_one("[data-slot='card-footer']")
+        if not all(isinstance(node, Tag) for node in (heading, header, content, footer)):
+            raise ParseError("aijspt competition card is incomplete")
+        badges = header.select("[data-slot='badge']")
+        status_labels = {
+            "草稿": "draft",
+            "即将开始": "upcoming",
+            "报名中": "registration_open",
+            "进行中": "in_progress",
+            "已结束": "finished",
+            "往期比赛补录中": "previous_recording",
+            "已归档": "archived",
+        }
+        recognition_labels = {
+            "校内名单+全国名单": "school_and_national",
+            "校内名单": "school_only",
+            "全国名单": "national_only",
+            "名单外": "unlisted",
+        }
+        status = _tag_text(badges[0]) if badges else None
+        recognition = _tag_text(badges[1]) if len(badges) > 1 else None
+        category = heading.find_previous_sibling()
+        summary = content.find("p")
+        spans = footer.select("span")
+        year_match = re.search(r"\b(\d{4})\b", _tag_text(spans[0]) or "") if spans else None
+        if (
+            year_match is None
+            or status not in status_labels
+            or recognition not in recognition_labels
+        ):
+            raise ParseError("aijspt competition card metadata is invalid")
+        date_label = next((p for p in content.find_all("p") if _tag_text(p) == "报名时间"), None)
+        date_node = date_label.find_next_sibling("p") if date_label else None
+        date_parts = (_tag_text(date_node) or "").split("至") if date_node else []
+        parsed_dates: list[datetime | None] = []
+        for value in date_parts:
+            match = re.search(r"\d{4}/\d{2}/\d{2} \d{2}:\d{2}", value)
+            try:
+                parsed_dates.append(
+                    datetime.strptime(match.group(), "%Y/%m/%d %H:%M").replace(
+                        tzinfo=timezone(timedelta(hours=8))
+                    )
+                    if match
+                    else None
+                )
+            except ValueError as exc:
+                raise ParseError("aijspt competition registration date is invalid") from exc
+        mode_label = next((p for p in content.find_all("p") if _tag_text(p) == "报名方式"), None)
+        mode_node = mode_label.find_next_sibling("p") if mode_label else None
+        mode = {"团队报名": "team", "个人报名": "individual"}.get(
+            _tag_text(mode_node) if mode_node else None, ""
+        )
+        official = None
+        wechat = None
+        for anchor in card.select("a[href]"):
+            href = str(anchor.get("href"))
+            if "official-link" in href or _tag_text(anchor) == "官网报名":
+                official = _absolute(BASE_URL, href)
+            if urlparse(href).hostname == "mp.weixin.qq.com":
+                wechat = href
         return CompetitionSummary(
             id=competition_id,
-            title=_required_text(value.get("title"), "title"),
+            title=_required_text(_tag_text(heading), "title"),
             url=urljoin(BASE_URL, f"competitions/{competition_id}"),
-            category=_required_text(value.get("category"), "category"),
-            competition_year=_required_int(value.get("competitionYear"), "competitionYear"),
-            recognition=_required_text(value.get("recognition"), "recognition"),
-            status=_required_text(value.get("status"), "status"),
-            summary=_required_text(value.get("summary"), "summary"),
-            department=_required_text(value.get("department"), "department"),
-            registration_mode=_required_text(value.get("registrationMode"), "registrationMode"),
-            max_team_size=_required_int(value.get("maxTeamSize"), "maxTeamSize"),
-            max_advisors=_required_int(value.get("maxAdvisors"), "maxAdvisors"),
-            registration_start_at=_parse_datetime(
-                value.get("registrationStartAt"), "registrationStartAt"
+            category=_required_text(
+                _tag_text(category) if isinstance(category, Tag) else None, "category"
             ),
-            registration_end_at=_parse_datetime(
-                value.get("registrationEndAt"), "registrationEndAt"
+            competition_year=int(year_match.group(1)),
+            recognition=recognition_labels[recognition],
+            status=status_labels[status],
+            summary=_required_text(
+                _tag_text(summary) if isinstance(summary, Tag) else None, "summary"
             ),
-            event_start_at=_parse_datetime(value.get("eventStartAt"), "eventStartAt"),
-            event_end_at=_parse_datetime(value.get("eventEndAt"), "eventEndAt"),
-            official_url=_optional_text(value.get("officialUrl"), "officialUrl"),
-            wechat_article_url=_optional_text(value.get("wechatArticleUrl"), "wechatArticleUrl"),
-            cta_type=_optional_text(value.get("ctaType"), "ctaType"),
-            cta_label_override=_optional_text(value.get("ctaLabelOverride"), "ctaLabelOverride"),
+            department=_required_text(
+                _tag_text(spans[1]) if len(spans) > 1 else None, "department"
+            ),
+            registration_mode=mode,
+            max_team_size=None,
+            max_advisors=None,
+            registration_start_at=parsed_dates[0] if parsed_dates else None,
+            registration_end_at=parsed_dates[1] if len(parsed_dates) > 1 else None,
+            official_url=official,
+            wechat_article_url=wechat,
         )
 
     def _all_competitions(self) -> tuple[tuple[CompetitionSummary, ...], str]:
-        if self._competition_cache is not None:
+        """遍历公开年份与分页链接并去重比赛,成功结果缓存五分钟。
+
+        仅请求固定竞赛域名的列表路由。失败结果不缓存,避免长期隐藏上游恢复。
+        """
+        if self._competition_cache is not None and monotonic() - self._competition_cached_at < 300:
             return self._competition_cache
-        payload, response_url = self._json_object(urljoin(BASE_URL, "api/competitions"))
-        raw_items = payload.get("competitions")
-        if not isinstance(raw_items, list):
-            raise ParseError("aijspt competitions response is missing a list")
-        items = tuple(self._parse_competition(item) for item in raw_items)
+        source_url = urljoin(BASE_URL, "competitions")
+        pending = [source_url]
+        visited: set[str] = set()
+        collected: dict[str, CompetitionSummary] = {}
+        while pending:
+            url = pending.pop(0)
+            if url in visited:
+                continue
+            if len(visited) >= 100:
+                raise ParseError("aijspt competition pagination exceeds 100 pages")
+            visited.add(url)
+            html, response_url = self._client._request_text("GET", url)
+            soup = self._page_soup(html)
+            page_items = 0
+            for anchor in soup.select("a[href]"):
+                parsed = urlparse(urljoin(source_url, str(anchor.get("href"))))
+                if parsed.hostname != urlparse(BASE_URL).hostname:
+                    continue
+                match = _DETAIL_PATH_RE.fullmatch(parsed.path)
+                if match:
+                    card = anchor.find_parent(attrs={"data-slot": "card"})
+                    if isinstance(card, Tag) and match.group(1) not in collected:
+                        collected[match.group(1)] = self._parse_card(card, match.group(1))
+                    if isinstance(card, Tag):
+                        page_items += 1
+                elif parsed.path == "/competitions" and parsed.query:
+                    params = parse_qs(parsed.query)
+                    if set(params) <= {"year", "page"} and all(
+                        len(values) == 1 and values[0].isdigit() for values in params.values()
+                    ):
+                        page_url = (
+                            urljoin(source_url, parsed.path)
+                            + "?"
+                            + "&".join(f"{key}={params[key][0]}" for key in sorted(params))
+                        )
+                        if page_url not in visited and page_url not in pending:
+                            pending.append(page_url)
+            if soup.find("h1") is None or "比赛列表" not in soup.find("h1").get_text():
+                raise ParseError("aijspt competition list heading not found")
+            if not page_items and not any(
+                marker in soup.get_text()
+                for marker in ("暂无比赛", "暂无符合", "没有找到", "共 0 场")
+            ):
+                raise ParseError("aijspt competition list contains no recognizable cards")
+        items = tuple(collected.values())
+        response_url = source_url
         self._competition_cache = (items, response_url)
+        self._competition_cached_at = monotonic()
         return items, response_url
 
     def get_competitions(
@@ -348,7 +491,7 @@ class AijsptAdapter:
         competition_id, supplied = self._normalize_competition_id(competition_or_id)
         competition = supplied or self._find_competition(competition_id)
         html, response_url = self._client._request_text("GET", competition.url)
-        soup = BeautifulSoup(html, "html.parser")
+        soup = self._page_soup(html)
         heading = soup.find("h1")
         if not isinstance(heading, Tag):
             raise ParseError("aijspt competition detail heading not found")
@@ -394,12 +537,8 @@ class AijsptAdapter:
 
     def get_notices(self, limit: int = 20) -> ListResult[Notice]:
         _positive_int(limit, "limit")
-        payload, response_url = self._json_object(
-            urljoin(BASE_URL, "api/notices/published"), params={"limit": limit}
-        )
-        raw_items = payload.get("notices")
-        if not isinstance(raw_items, list):
-            raise ParseError("aijspt notices response is missing a list")
+        html, response_url = self._client._request_text("GET", urljoin(BASE_URL, "notifications"))
+        raw_items = self._notice_payload(self._page_soup(html))[:limit]
         items: list[Notice] = []
         for value in raw_items:
             if not isinstance(value, dict):
@@ -410,6 +549,8 @@ class AijsptAdapter:
             allow_popup = value.get("allowPopup")
             if not isinstance(allow_popup, bool):
                 raise ParseError("aijspt field 'allowPopup' must be a boolean")
+            # 验证正文非空后保留原始换行,避免通知段落在小程序弹层中合并。
+            _required_text(value.get("content"), "content")
             items.append(
                 Notice(
                     id=_required_text(value.get("id"), "id"),
@@ -418,7 +559,7 @@ class AijsptAdapter:
                         value.get("competitionTitle"), "competitionTitle"
                     ),
                     title=_required_text(value.get("title"), "title"),
-                    content=_required_text(value.get("content"), "content"),
+                    content=value["content"].strip(),
                     priority=_required_text(value.get("priority"), "priority"),
                     delivery_scope=_required_text(value.get("deliveryScope"), "deliveryScope"),
                     allow_popup=allow_popup,
@@ -469,9 +610,7 @@ class AijsptAdapter:
                         _tag_text(badge) if isinstance(badge, Tag) else None, "club.direction"
                     ),
                     slogan=_required_text(_tag_text(paragraphs[0]), "club.slogan"),
-                    description=_required_text(
-                        _tag_text(paragraphs[1]), "club.description"
-                    ),
+                    description=_required_text(_tag_text(paragraphs[1]), "club.description"),
                     url=url,
                 )
             )

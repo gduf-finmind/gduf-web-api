@@ -142,8 +142,8 @@ class CompetitionSummary(JsonModel):
     summary: str
     department: str
     registration_mode: str
-    max_team_size: int
-    max_advisors: int
+    max_team_size: int | None
+    max_advisors: int | None
     registration_start_at: datetime | None = None
     registration_end_at: datetime | None = None
     event_start_at: datetime | None = None
